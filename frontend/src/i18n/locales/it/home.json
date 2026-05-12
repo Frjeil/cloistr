@@ -1,0 +1,15 @@
+{
+  "title": "Cloistr",
+  "subtitle": "Trova il tuo posto ideale per studiare",
+  "description": "Scopri e condividi spazi studio, traccia i tuoi check-in e connettiti con la community.",
+  "joinDiscord": "Entra su Discord",
+  "contactUs": "Contattaci",
+  "footer": {
+    "tagline": "Trova il tuo posto ideale per studiare e connettiti con la community.",
+    "navigation": "Navigazione",
+    "community": "Community",
+    "settings": "Impostazioni",
+    "copyright": "Cloistr. Tutti i diritti riservati.",
+    "madeWith": "Fatto con"
+  }
+}

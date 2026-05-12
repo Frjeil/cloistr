@@ -1,0 +1,27 @@
+{
+  "title": "Leaderboard",
+  "description": "Live community rankings synced with the current backend.",
+  "refresh": "Refresh",
+  "refreshing": "Refreshing data...",
+  "errorTitle": "Unable to load the leaderboard",
+  "error": "There was a problem loading the data. Please try again shortly.",
+  "rank": "Rank",
+  "member": "Member",
+  "level": "Level",
+  "xp": "XP",
+  "checkinsOver1h": "Check-ins > 1h",
+  "streakDays": "Streak days",
+  "noParticipants": "No participants available for this ranking yet.",
+  "nextLevel": "{{xp}} XP to the next level",
+  "nextLevelWithName": "{{xp}} XP to {{level}}",
+  "maxLevel": "Maximum level reached",
+  "sections": {
+    "levels": "Levels",
+    "xp": "Experience",
+    "checkins": "Check-ins",
+    "streak": "Streak"
+  },
+  "levels": {
+    "unknown": "Unknown level"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "title": "Cloistr",
+  "subtitle": "Find your ideal study spot",
+  "description": "Discover and share study spaces, track your check-ins, and connect with the community.",
+  "joinDiscord": "Join Discord",
+  "contactUs": "Contact us",
+  "footer": {
+    "tagline": "Find your ideal study spot and connect with the community.",
+    "navigation": "Navigation",
+    "community": "Community",
+    "settings": "Settings",
+    "copyright": "Cloistr. All rights reserved.",
+    "madeWith": "Made with"
+  }
+}

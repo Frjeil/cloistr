@@ -1,0 +1,14 @@
+{
+  "map": "Map",
+  "leaderboard": "Leaderboard",
+  "contacts": "Contacts",
+  "login": "Log in",
+  "profile": "Profile",
+  "theme": "Theme",
+  "themeLight": "Light theme",
+  "themeDark": "Dark theme",
+  "switchToEnglish": "Switch to English",
+  "switchToItalian": "Switch to Italian",
+  "discord": "Discord",
+  "donate": "Support the project"
+}

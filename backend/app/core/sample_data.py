@@ -1,0 +1,283 @@
+from datetime import UTC, datetime, timedelta
+
+from app.schemas.profile import ProfileDetails, ProfileLevel, ProfileLevelRef
+from app.schemas.space import SpaceSearchResponse, SpaceSummary
+
+SAMPLE_ACCOUNT_KEY = "cloistr"
+SAMPLE_ACCOUNT_USERNAME = "cloistr"
+SAMPLE_ACCOUNT_EMAIL = "hello@cloistr.local"
+
+SAMPLE_PROFILE = ProfileDetails(
+    id=SAMPLE_ACCOUNT_KEY,
+    username=SAMPLE_ACCOUNT_USERNAME,
+    email=SAMPLE_ACCOUNT_EMAIL,
+    xp=4200,
+    total_checkins=12,
+    activity_streak_days=4,
+    last_checkin_date=datetime.now(tz=UTC).date() - timedelta(days=1),
+    avatar_url=None,
+    share_presence=True,
+    discord_handle="@cloistr",
+    level=ProfileLevel(
+        slug="scribe",
+        name="Scribe",
+        xp_into_level=200,
+        xp_required_for_next_level=500,
+        xp_to_next_level=300,
+        progress_percentage=40,
+        position=3,
+        total_levels=12,
+        is_max_level=False,
+        next_level=ProfileLevelRef(slug="archivist", name="Archivist"),
+    ),
+)
+
+SAMPLE_SPACES: list[SpaceSummary] = [
+    SpaceSummary(
+        id="1",
+        name="Biblioteca Sormani",
+        address="Corso di Porta Vittoria 6, Milano",
+        latitude=45.4637,
+        longitude=9.2056,
+        kind="library",
+        capacity=180,
+        power_capacity=90,
+        wifi=True,
+        power=True,
+        quiet=True,
+        air_conditioning=True,
+        availability="moderate",
+    ),
+    SpaceSummary(
+        id="2",
+        name="Cascina Cuccagna",
+        address="Via Cuccagna 2/4, Milano",
+        latitude=45.4521,
+        longitude=9.2119,
+        kind="cafe",
+        capacity=60,
+        power_capacity=20,
+        wifi=True,
+        power=True,
+        quiet=False,
+        air_conditioning=False,
+        availability="free",
+    ),
+    SpaceSummary(
+        id="3",
+        name="BASE Milano",
+        address="Via Bergognone 34, Milano",
+        latitude=45.4513,
+        longitude=9.1676,
+        kind="coworking",
+        capacity=120,
+        power_capacity=80,
+        wifi=True,
+        power=True,
+        quiet=False,
+        air_conditioning=True,
+        availability="busy",
+    ),
+    # Pisa spaces
+    SpaceSummary(
+        id="4",
+        name="Biblioteca Universitaria di Pisa",
+        address="Via Curtatone e Montanara 15, Pisa",
+        latitude=43.7167,
+        longitude=10.3960,
+        kind="library",
+        capacity=200,
+        power_capacity=100,
+        wifi=True,
+        power=True,
+        quiet=True,
+        air_conditioning=True,
+        availability="moderate",
+    ),
+    SpaceSummary(
+        id="5",
+        name="Biblioteca di Scienze",
+        address="Via Bonanno Pisano 25, Pisa",
+        latitude=43.7150,
+        longitude=10.3930,
+        kind="library",
+        capacity=80,
+        power_capacity=40,
+        wifi=True,
+        power=True,
+        quiet=True,
+        air_conditioning=False,
+        availability="free",
+    ),
+    SpaceSummary(
+        id="6",
+        name="Caffè dell'Ussero",
+        address="Lungarno Pacinotti 27, Pisa",
+        latitude=43.7160,
+        longitude=10.3975,
+        kind="cafe",
+        capacity=40,
+        power_capacity=12,
+        wifi=True,
+        power=True,
+        quiet=False,
+        air_conditioning=True,
+        availability="busy",
+    ),
+    SpaceSummary(
+        id="7",
+        name="Coworking Pisa Tower",
+        address="Via Santa Maria 88, Pisa",
+        latitude=43.7158,
+        longitude=10.3948,
+        kind="coworking",
+        capacity=50,
+        power_capacity=35,
+        wifi=True,
+        power=True,
+        quiet=False,
+        air_conditioning=True,
+        availability="free",
+    ),
+    SpaceSummary(
+        id="8",
+        name="STS Coworking Pisa",
+        address="Via Francesco da Buti 9, Pisa",
+        latitude=43.7140,
+        longitude=10.3955,
+        kind="coworking",
+        capacity=30,
+        power_capacity=20,
+        wifi=True,
+        power=True,
+        quiet=False,
+        air_conditioning=True,
+        availability="free",
+    ),
+    SpaceSummary(
+        id="9",
+        name="Aula Studio Palazzo Carovana",
+        address="Piazza dei Cavalieri 7, Pisa",
+        latitude=43.7180,
+        longitude=10.3985,
+        kind="classroom",
+        capacity=60,
+        power_capacity=30,
+        wifi=True,
+        power=True,
+        quiet=True,
+        air_conditioning=False,
+        availability="free",
+    ),
+    SpaceSummary(
+        id="10",
+        name="Biblioteca di Ingegneria",
+        address="Largo Lucio Lazzarino 1, Pisa",
+        latitude=43.7175,
+        longitude=10.3870,
+        kind="library",
+        capacity=150,
+        power_capacity=75,
+        wifi=True,
+        power=True,
+        quiet=True,
+        air_conditioning=True,
+        availability="moderate",
+    ),
+    SpaceSummary(
+        id="11",
+        name="Aula Magna Polo Fibonacci",
+        address="Via Buonarroti 8, Pisa",
+        latitude=43.7155,
+        longitude=10.3900,
+        kind="classroom",
+        capacity=90,
+        power_capacity=45,
+        wifi=True,
+        power=True,
+        quiet=True,
+        air_conditioning=True,
+        availability="free",
+    ),
+    SpaceSummary(
+        id="12",
+        name="Coffee Break Pisa",
+        address="Corso Italia 15, Pisa",
+        latitude=43.7130,
+        longitude=10.3980,
+        kind="cafe",
+        capacity=25,
+        power_capacity=8,
+        wifi=True,
+        power=True,
+        quiet=False,
+        air_conditioning=False,
+        availability="busy",
+    ),
+    SpaceSummary(
+        id="13",
+        name="Rivoluzione Coworking",
+        address="Lungarno Mediceo 49, Pisa",
+        latitude=43.7185,
+        longitude=10.4010,
+        kind="coworking",
+        capacity=40,
+        power_capacity=28,
+        wifi=True,
+        power=True,
+        quiet=False,
+        air_conditioning=True,
+        availability="free",
+    ),
+]
+
+
+def get_sample_spaces() -> SpaceSearchResponse:
+    return SpaceSearchResponse(results=SAMPLE_SPACES)
+
+
+def get_sample_space_documents() -> list[dict[str, object]]:
+    return [
+        {
+            "external_id": space.id,
+            "name": space.name,
+            "address": space.address,
+            "latitude": space.latitude,
+            "longitude": space.longitude,
+            "kind": space.kind,
+            "capacity": space.capacity,
+            "power_capacity": space.power_capacity,
+            "wifi": space.wifi,
+            "power": space.power,
+            "quiet": space.quiet,
+            "air_conditioning": space.air_conditioning,
+            "availability": space.availability,
+        }
+        for space in SAMPLE_SPACES
+    ]
+
+
+def get_sample_space_docs_by_external_id() -> dict[str, dict[str, object]]:
+    docs = get_sample_space_documents()
+    return {d["external_id"]: d for d in docs}
+
+
+def get_sample_profile_details() -> ProfileDetails:
+    return SAMPLE_PROFILE.model_copy(deep=True)
+
+
+def get_sample_profile_document(password_hash: str) -> dict[str, object]:
+    return {
+        "account_key": SAMPLE_ACCOUNT_KEY,
+        "username": SAMPLE_PROFILE.username,
+        "email": SAMPLE_PROFILE.email,
+        "password_hash": password_hash,
+        "email_verified": True,
+        "xp": SAMPLE_PROFILE.xp,
+        "total_checkins": SAMPLE_PROFILE.total_checkins,
+        "activity_streak_days": SAMPLE_PROFILE.activity_streak_days,
+        "last_checkin_date": SAMPLE_PROFILE.last_checkin_date,
+        "avatar_url": SAMPLE_PROFILE.avatar_url,
+        "share_presence": SAMPLE_PROFILE.share_presence,
+        "discord_handle": SAMPLE_PROFILE.discord_handle,
+    }

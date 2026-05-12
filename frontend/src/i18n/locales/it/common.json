@@ -1,0 +1,8 @@
+{
+  "menu": "Menu",
+  "loading": "Caricamento in corso",
+  "protectedRoute": "Questa pagina richiede autenticazione.",
+  "backHome": "Torna alla home",
+  "notFound": "Route non trovata. Puoi tornare alla home page.",
+  "goHome": "Vai alla home"
+}

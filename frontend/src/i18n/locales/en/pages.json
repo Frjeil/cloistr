@@ -1,0 +1,18 @@
+{
+  "contacts": {
+    "title": "Contacts",
+    "description": "Get in touch with the team and the community.",
+    "form": {
+      "name": "Your name",
+      "namePlaceholder": "John Doe",
+      "email": "Your email",
+      "emailPlaceholder": "john@example.com",
+      "message": "Message",
+      "messagePlaceholder": "How can we help you?",
+      "send": "Send message",
+      "sending": "Sending...",
+      "success": "Message sent! We'll get back to you soon.",
+      "error": "Something went wrong. Please try again later."
+    }
+  }
+}

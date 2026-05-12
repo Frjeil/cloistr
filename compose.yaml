@@ -1,0 +1,53 @@
+services:
+  mongo:
+    image: mongo:8.0
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    working_dir: /app
+    environment:
+      APP_ENV: development
+      APP_CORS_ORIGINS: '["http://localhost:5176","http://127.0.0.1:5176"]'
+      MONGODB_URI: mongodb://mongo:27017
+      MONGODB_DB: cloistr
+      POETRY_VIRTUALENVS_CREATE: "false"
+      POETRY_VIRTUALENVS_IN_PROJECT: "false"
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    working_dir: /app
+    environment:
+      VITE_HOST: 0.0.0.0
+      VITE_PORT: 5176
+      BACKEND_ORIGIN: http://backend:8000
+    ports:
+      - "127.0.0.1:5176:5176"
+    volumes:
+      - ./frontend:/app
+    depends_on:
+      backend:
+        condition: service_started
+
+volumes:
+  mongo_data:

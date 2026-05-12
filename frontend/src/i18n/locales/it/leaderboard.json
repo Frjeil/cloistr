@@ -1,0 +1,27 @@
+{
+  "title": "Leaderboard",
+  "description": "Classifiche live della community sincronizzate con il backend attuale.",
+  "refresh": "Aggiorna",
+  "refreshing": "Aggiornamento dati in corso...",
+  "errorTitle": "Impossibile caricare la leaderboard",
+  "error": "Si è verificato un problema durante il caricamento dei dati. Riprova tra poco.",
+  "rank": "Rank",
+  "member": "Membro",
+  "level": "Livello",
+  "xp": "XP",
+  "checkinsOver1h": "Check-in > 1h",
+  "streakDays": "Giorni streak",
+  "noParticipants": "Nessun partecipante disponibile per questa classifica.",
+  "nextLevel": "{{xp}} XP al prossimo livello",
+  "nextLevelWithName": "{{xp}} XP per {{level}}",
+  "maxLevel": "Livello massimo raggiunto",
+  "sections": {
+    "levels": "Livelli",
+    "xp": "Esperienza",
+    "checkins": "Check-in",
+    "streak": "Streak"
+  },
+  "levels": {
+    "unknown": "Livello sconosciuto"
+  }
+}

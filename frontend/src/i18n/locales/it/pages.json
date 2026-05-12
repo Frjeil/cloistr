@@ -1,0 +1,18 @@
+{
+  "contacts": {
+    "title": "Contatti",
+    "description": "Mettiti in contatto con il team e la community.",
+    "form": {
+      "name": "Il tuo nome",
+      "namePlaceholder": "Mario Rossi",
+      "email": "La tua email",
+      "emailPlaceholder": "mario@esempio.com",
+      "message": "Messaggio",
+      "messagePlaceholder": "Come possiamo aiutarti?",
+      "send": "Invia messaggio",
+      "sending": "Invio in corso...",
+      "success": "Messaggio inviato! Ti risponderemo presto.",
+      "error": "Qualcosa è andato storto. Riprova più tardi."
+    }
+  }
+}
