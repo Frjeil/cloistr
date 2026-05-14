@@ -1,12 +1,14 @@
 import 'maplibre-gl/dist/maplibre-gl.css'
 import maplibregl from 'maplibre-gl'
-import { IconFilter, IconSearch, IconX } from '@tabler/icons-react'
+import { IconFilter, IconPlug, IconSearch, IconSnowflake, IconVolume3, IconWifi, IconX } from '@tabler/icons-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
-import { ActionIcon, Badge, Button, Group, Paper, Stack, Text } from '@mantine/core'
+import { ActionIcon, Avatar, Badge, Button, Group, Paper, Stack, Text } from '@mantine/core'
 import type { ActiveCheckin } from '../../types/auth'
 import type { SpaceSummary } from '../../types/spaces'
+import type { ActiveCheckinUser } from '../../types/checkins'
+import { fetchActiveCheckinsBySpace } from '../../api/checkins'
 import { useClusterIndex } from '../../hooks/useClusterIndex'
 import { useMapTheme } from '../../hooks/useMapTheme'
 import { DEFAULT_CENTER, loadView, LIGHT_STYLE, DARK_STYLE, persistView } from './constants'
@@ -46,11 +48,12 @@ export function SpacesMap({
   const [mapLoaded, setMapLoaded] = useState(false)
   const [detailSpace, setDetailSpace] = useState<SpaceSummary | null>(null)
   const [detailOpened, setDetailOpened] = useState(false)
+  const [popupActiveUsers, setPopupActiveUsers] = useState<ActiveCheckinUser[]>([])
 
   const points = useMemo<Point[]>(
     () => spaces
       .filter((s): s is Point => s.latitude !== null && s.longitude !== null)
-      .map((s) => ({ id: s.id, name: s.name, address: s.address, latitude: s.latitude!, longitude: s.longitude!, kind: s.kind, availability: s.availability })),
+      .map((s) => ({ id: s.id, name: s.name, address: s.address, latitude: s.latitude!, longitude: s.longitude!, kind: s.kind, availability: s.availability, wifi: s.wifi, power: s.power, quiet: s.quiet, airConditioning: s.airConditioning })),
     [spaces],
   )
 
@@ -67,6 +70,13 @@ export function SpacesMap({
   }, [])
 
   const clusterIndexRef = useClusterIndex(points)
+
+  // Fetch active check-in users when popup opens
+  useEffect(() => {
+    if (popupState?.space.id) {
+      fetchActiveCheckinsBySpace(popupState.space.id).then(setPopupActiveUsers).catch(() => setPopupActiveUsers([]))
+    }
+  }, [popupState?.space.id])
 
   // Init map — once
   useEffect(() => {
@@ -254,7 +264,7 @@ export function SpacesMap({
         </div>
       </div>
       {popupState && createPortal(
-        <Paper withBorder p="md" radius="md" shadow="md" style={{ width: 260 }}>
+        <Paper withBorder p="md" radius="md" shadow="md" style={{ width: 280 }}>
           <Stack gap={8}>
             <Group gap="xs" justify="space-between" wrap="nowrap">
               <Text fw={600} size="sm" truncate style={{ flex: 1 }}>{popupState.space.name}</Text>
@@ -273,6 +283,24 @@ export function SpacesMap({
                 {popupState.space.availability ? t(`availability.${popupState.space.availability}`) : t('availability.unknown')}
               </Badge>
             </Group>
+            <Group gap={6}>
+              {popupState.space.wifi && <IconWifi size={14} />}
+              {popupState.space.power && <IconPlug size={14} />}
+              {popupState.space.quiet && <IconVolume3 size={14} />}
+              {popupState.space.airConditioning && <IconSnowflake size={14} />}
+            </Group>
+            {popupActiveUsers.length > 0 && (
+              <Avatar.Group>
+                {popupActiveUsers.slice(0, 5).map((u) => (
+                  <Avatar key={u.id} size="sm" src={u.avatarUrl || undefined} alt={u.username}>
+                    {u.username.slice(0, 1).toUpperCase()}
+                  </Avatar>
+                ))}
+                {popupActiveUsers.length > 5 && (
+                  <Avatar size="sm">+{popupActiveUsers.length - 5}</Avatar>
+                )}
+              </Avatar.Group>
+            )}
             <Button size="xs" variant="light" fullWidth onClick={() => openDetail(popupState.space)}>
               {t('details.open')}
             </Button>
@@ -286,6 +314,7 @@ export function SpacesMap({
         hasActiveCheckinElsewhere={hasActiveElsewhere}
         onStartCheckin={handleStart} onEndCheckin={handleEnd}
         activeCheckinId={activeCheckin?.id ?? null}
+        activeCheckinUsers={popupActiveUsers}
       />
     </div>
   )

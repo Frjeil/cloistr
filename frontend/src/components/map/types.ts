@@ -6,4 +6,8 @@ export type Point = {
   longitude: number
   kind: string | null
   availability: string | null
+  wifi: boolean
+  power: boolean
+  quiet: boolean
+  airConditioning: boolean
 }

@@ -1,4 +1,4 @@
-export type LeaderboardSectionKey = 'xp' | 'levels' | 'checkins' | 'streak'
+export type LeaderboardSectionKey = 'xp' | 'checkins' | 'streak'
 
 export type LeaderboardLevel = {
   slug: string | null

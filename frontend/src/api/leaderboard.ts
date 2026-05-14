@@ -7,7 +7,7 @@ import type {
 import { readNumber, readString } from '../utils/normalizers'
 import { apiFetch } from './client'
 
-const leaderboardSections: LeaderboardSectionKey[] = ['xp', 'levels', 'checkins', 'streak']
+const leaderboardSections: LeaderboardSectionKey[] = ['xp', 'checkins', 'streak']
 
 function normalizeEntry(entry: unknown): LeaderboardEntry | null {
   if (!entry || typeof entry !== 'object') {
@@ -74,7 +74,6 @@ export async function fetchLeaderboard(): Promise<LeaderboardData> {
   const results = response.results ?? {}
   const normalizedData: LeaderboardData = {
     xp: [],
-    levels: [],
     checkins: [],
     streak: [],
   }

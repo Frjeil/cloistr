@@ -273,14 +273,9 @@ export default function Layout({ children }: PropsWithChildren) {
             </Stack>
           </SimpleGrid>
 
-          <Divider my="md" />
-
-          <Group justify="space-between" align="center" gap="xs" wrap="wrap">
+          <Group justify="space-between" align="center" gap="xs" wrap="wrap" mt="xl">
             <Text size="xs" c="dimmed">
               {t('footer.copyright', { ns: 'home' })}
-            </Text>
-            <Text size="xs" c="dimmed">
-              {t('footer.madeWith', { ns: 'home' })} <IconHeart size={12} style={{ display: 'inline', verticalAlign: 'middle' }} />
             </Text>
           </Group>
         </Container>

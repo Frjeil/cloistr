@@ -54,25 +54,12 @@ def _sort_profiles_by_xp(profiles: list[ProfileDetails]) -> list[ProfileDetails]
     return sorted(profiles, key=lambda profile: (-profile.xp, profile.username.lower()))
 
 
-def _sort_profiles_by_level(profiles: list[ProfileDetails]) -> list[ProfileDetails]:
-    def sort_key(profile: ProfileDetails) -> tuple[int, int, str]:
-        level_position = (
-            profile.level.position
-            if profile.level and profile.level.position is not None
-            else 10_000
-        )
-        return (level_position, -profile.xp, profile.username.lower())
-
-    return sorted(profiles, key=sort_key)
-
-
 async def build_leaderboard() -> LeaderboardResponse:
     if mongodb_database.mongodb_database is None:
         profile = get_memory_profile_details()
         return LeaderboardResponse(
             results=LeaderboardResults(
                 xp=[_leaderboard_entry(profile, 1)],
-                levels=[_leaderboard_entry(profile, 1)],
                 checkins=[_leaderboard_entry(profile, 1)],
                 streak=[_leaderboard_entry(profile, 1)],
             )
@@ -84,12 +71,6 @@ async def build_leaderboard() -> LeaderboardResponse:
     xp_entries = [
         _leaderboard_entry(profile, rank)
         for rank, profile in enumerate(_sort_profiles_by_xp(profiles)[:LEADERBOARD_LIMIT], start=1)
-    ]
-    level_entries = [
-        _leaderboard_entry(profile, rank)
-        for rank, profile in enumerate(
-            _sort_profiles_by_level(profiles)[:LEADERBOARD_LIMIT], start=1
-        )
     ]
     checkin_entries = [
         _leaderboard_entry(
@@ -121,7 +102,6 @@ async def build_leaderboard() -> LeaderboardResponse:
     return LeaderboardResponse(
         results=LeaderboardResults(
             xp=xp_entries,
-            levels=level_entries,
             checkins=checkin_entries,
             streak=streak_entries,
         )

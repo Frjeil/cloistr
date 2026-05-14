@@ -23,3 +23,16 @@ class StartCheckinPayload(BaseModel):
 
 class EndCheckinPayload(BaseModel):
     checkin_id: str | None = None
+
+
+class ActiveCheckinUser(BaseModel):
+    id: str
+    username: str
+    avatar_url: str | None = None
+    discord_handle: str | None = None
+    level_slug: str | None = None
+    level_name: str | None = None
+
+
+class ActiveCheckinUsersResponse(BaseModel):
+    results: list[ActiveCheckinUser]

@@ -72,6 +72,8 @@
     "amenities": "Amenities",
     "noAmenities": "No amenities listed.",
     "close": "Close details",
+    "openInMaps": "Open in Google Maps",
+    "activeCheckins": "Active check-ins",
     "count": "{{count}} markers on the map"
   }
 }

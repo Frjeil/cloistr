@@ -41,7 +41,7 @@ from app.schemas.auth import (
     PasswordResetPayload,
     RegisterPayload,
 )
-from app.schemas.checkin import CheckinHistoryEntry, EndCheckinPayload, StartCheckinPayload
+from app.schemas.checkin import ActiveCheckinUser, CheckinHistoryEntry, EndCheckinPayload, StartCheckinPayload
 from app.schemas.profile import ProfileDetails, ProfileUpdatePayload
 from app.schemas.session import ActiveCheckin, SessionUser
 
@@ -102,7 +102,7 @@ def _advance_checkin_stats(
     current_date: date,
 ) -> tuple[int, int, date]:
     if last_checkin_date == current_date:
-        return total_checkins + 1, activity_streak_days, current_date
+        return total_checkins, activity_streak_days, current_date
 
     if last_checkin_date == current_date - timedelta(days=1):
         return total_checkins + 1, activity_streak_days + 1, current_date
@@ -154,6 +154,44 @@ async def get_checkin_history(request: Request, limit: int = 5) -> list[CheckinH
         )
         for document in documents
     ]
+
+
+async def get_active_checkins_by_space(space_id: str) -> list[ActiveCheckinUser]:
+    if mongodb_database.mongodb_database is None:
+        if (
+            _MEMORY_ACTIVE_CHECKIN is not None
+            and _MEMORY_ACTIVE_CHECKIN.space_id == space_id
+        ):
+            profile = get_memory_profile_details()
+            return [ActiveCheckinUser(
+                id=profile.id,
+                username=profile.username,
+                avatar_url=profile.avatar_url if profile.share_presence else None,
+                discord_handle=profile.discord_handle,
+                level_slug=profile.level.slug if profile.level else None,
+                level_name=profile.level.name if profile.level else None,
+            )]
+        return []
+
+    documents = await CheckinDocument.find(
+        CheckinDocument.space_external_id == space_id
+    ).to_list()
+
+    results: list[ActiveCheckinUser] = []
+    for doc in documents:
+        profile = await ProfileDocument.find_one(ProfileDocument.account_key == doc.account_key)
+        if profile is None:
+            continue
+        details = document_to_profile_details(profile)
+        results.append(ActiveCheckinUser(
+            id=profile.account_key,
+            username=profile.username,
+            avatar_url=profile.avatar_url if profile.share_presence else None,
+            discord_handle=profile.discord_handle,
+            level_slug=details.level.slug if details.level else None,
+            level_name=details.level.name if details.level else None,
+        ))
+    return results
 
 
 def reset_memory_state() -> None:

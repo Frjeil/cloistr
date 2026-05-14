@@ -1,6 +1,6 @@
 import { formatApiError } from './auth'
 import { apiFetch } from './client'
-import type { CheckinHistoryEntry } from '../types/checkins'
+import type { ActiveCheckinUser, CheckinHistoryEntry } from '../types/checkins'
 
 export type StartCheckinPayload = {
   spaceId: string
@@ -104,3 +104,38 @@ export async function fetchCheckinHistory(limit = 5): Promise<CheckinHistoryEntr
 }
 
 export const formatCheckinError = formatApiError
+
+type ActiveCheckinUsersApiResponse = {
+  results?: unknown[]
+}
+
+function normalizeActiveCheckinUser(payload: unknown): ActiveCheckinUser | null {
+  if (!payload || typeof payload !== 'object') return null
+  const candidate = payload as Record<string, unknown>
+  const id = readString(candidate.id)
+  const username = readString(candidate.username)
+  if (!id || !username) return null
+  return {
+    id,
+    username,
+    avatarUrl: readString(candidate.avatar_url),
+    discordHandle: readString(candidate.discord_handle),
+    levelSlug: readString(candidate.level_slug),
+    levelName: readString(candidate.level_name),
+  }
+}
+
+export async function fetchActiveCheckinsBySpace(spaceId: string): Promise<ActiveCheckinUser[]> {
+  const response = await apiFetch<ActiveCheckinUsersApiResponse>(
+    `/api/checkins/active-by-space/${encodeURIComponent(spaceId)}/`,
+    {
+      method: 'GET',
+      ensureCsrf: true,
+      errorMessage: 'Unable to load active check-ins',
+    },
+  )
+
+  return (response.results ?? [])
+    .map(normalizeActiveCheckinUser)
+    .filter((u): u is ActiveCheckinUser => u !== null)
+}

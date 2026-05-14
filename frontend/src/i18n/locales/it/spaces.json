@@ -72,6 +72,8 @@
     "amenities": "Servizi",
     "noAmenities": "Nessun servizio elencato.",
     "close": "Chiudi dettagli",
+    "openInMaps": "Apri in Google Maps",
+    "activeCheckins": "Check-in attivi",
     "count": "{{count}} marker sulla mappa"
   }
 }

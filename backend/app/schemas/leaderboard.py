@@ -26,7 +26,6 @@ class LeaderboardEntry(BaseModel):
 
 class LeaderboardResults(BaseModel):
     xp: list[LeaderboardEntry]
-    levels: list[LeaderboardEntry]
     checkins: list[LeaderboardEntry]
     streak: list[LeaderboardEntry]
 

@@ -50,47 +50,7 @@ export default function LeaderboardPage() {
   )
 
   const sections = useMemo<SectionConfig[]>(() => {
-    const formatLevelValue = (entry: LeaderboardEntry) => {
-      const levelName = entry.level
-        ? t(`levels.${entry.level.slug || 'unknown'}`, {
-            defaultValue: entry.level.name || t('levels.unknown'),
-          })
-        : t('levels.unknown')
-
-      const xpToNext = entry.level?.xpToNextLevel
-      const nextLevelName = entry.level?.nextLevel
-        ? t(`levels.${entry.level.nextLevel.slug || 'unknown'}`, {
-            defaultValue: entry.level.nextLevel.name || t('levels.unknown'),
-          })
-        : null
-
-      const nextLevelLabel =
-        xpToNext && xpToNext > 0
-          ? nextLevelName
-            ? t('nextLevelWithName', {
-                xp: formatInteger(xpToNext),
-                level: nextLevelName,
-              })
-            : t('nextLevel', { xp: formatInteger(xpToNext) })
-          : t('maxLevel')
-
-      return (
-        <Stack gap={2} align="flex-end">
-          <Text fw={600}>{levelName}</Text>
-          <Text size="xs" c="dimmed">
-            {nextLevelLabel}
-          </Text>
-        </Stack>
-      )
-    }
-
     return [
-      {
-        key: 'levels',
-        title: t('sections.levels'),
-        valueLabel: t('level'),
-        renderValue: formatLevelValue,
-      },
       {
         key: 'xp',
         title: t('sections.xp'),
@@ -139,9 +99,9 @@ export default function LeaderboardPage() {
   }
 
   const renderLoadingState = () => (
-    <SimpleGrid cols={{ base: 1, md: 2 }} spacing="xl">
+    <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
       {sections.map((section) => (
-        <Paper withBorder radius="md" key={section.key} p="md">
+        <Paper withBorder radius="md" key={section.key} p="sm">
           <Skeleton height={24} mb="md" width="45%" />
           <Stack gap="sm">
             <Skeleton height={54} radius="md" />
@@ -170,15 +130,15 @@ export default function LeaderboardPage() {
         </Table.Td>
         <Table.Td>
           <Group wrap="nowrap" gap="sm" align="flex-start">
-            <Avatar radius="xl" size="md" src={entry.avatarUrl || undefined} alt={displayName}>
+            <Avatar radius="xl" size={44} src={entry.avatarUrl || undefined} alt={displayName}>
               {(displayName ?? '?').slice(0, 1).toUpperCase()}
             </Avatar>
             <Stack gap={4} style={{ flex: 1 }}>
-              <Group gap="xs" align="center">
+              <Group gap="xs" align="center" wrap="nowrap">
                 <Text fw={600}>{displayName}</Text>
-                {renderLevelBadge(entry)}
+                {renderDiscordBadge(entry)}
               </Group>
-              {renderDiscordBadge(entry)}
+              {renderLevelBadge(entry)}
             </Stack>
           </Group>
         </Table.Td>
@@ -220,35 +180,35 @@ export default function LeaderboardPage() {
         {isPending ? renderLoadingState() : null}
 
         {!isPending ? (
-          <SimpleGrid cols={{ base: 1, md: 2 }} spacing="xl">
+          <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
             {sections.map((section) => {
               const entries = data?.[section.key] ?? []
 
               return (
-                <Paper withBorder radius="md" key={section.key} p="md" style={{ height: '100%' }}>
+                <Paper withBorder radius="md" key={section.key} p="sm" style={{ height: '100%' }}>
                   <Title order={2} size="h4" mb="sm">
-                    {section.title}
-                  </Title>
-                  <Table verticalSpacing="sm" striped highlightOnHover>
-                    <Table.Thead>
-                      <Table.Tr>
-                        <Table.Th>{t('rank')}</Table.Th>
-                        <Table.Th>{t('member')}</Table.Th>
-                        <Table.Th style={{ textAlign: 'right' }}>{section.valueLabel}</Table.Th>
-                      </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                      {entries.length ? (
-                        entries.map((entry) => renderRow(entry, section))
-                      ) : (
+                      {section.title}
+                    </Title>
+                    <Table verticalSpacing="sm" striped highlightOnHover>
+                      <Table.Thead>
                         <Table.Tr>
-                          <Table.Td colSpan={3}>
-                            <Text c="dimmed">{t('noParticipants')}</Text>
-                          </Table.Td>
+                          <Table.Th>{t('rank')}</Table.Th>
+                          <Table.Th>{t('member')}</Table.Th>
+                          <Table.Th style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>{section.valueLabel}</Table.Th>
                         </Table.Tr>
-                      )}
-                    </Table.Tbody>
-                  </Table>
+                      </Table.Thead>
+                      <Table.Tbody>
+                        {entries.length ? (
+                          entries.map((entry) => renderRow(entry, section))
+                        ) : (
+                          <Table.Tr>
+                            <Table.Td colSpan={3}>
+                              <Text c="dimmed">{t('noParticipants')}</Text>
+                            </Table.Td>
+                          </Table.Tr>
+                        )}
+                      </Table.Tbody>
+                    </Table>
                 </Paper>
               )
             })}
