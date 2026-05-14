@@ -223,7 +223,8 @@ export function SpacesMap({
     )
   }
 
-  const isActiveHere = activeCheckin?.spaceId === popupState?.space.id
+  const activeSpaceId = popupState?.space.id ?? detailSpace?.id
+  const isActiveHere = !!activeCheckin && activeCheckin.spaceId === activeSpaceId
   const hasActiveElsewhere = !!activeCheckin && !isActiveHere
   const bg = isLight ? '#fff' : '#1a1b1e'
   const fg = isLight ? '#222' : '#e0e0e0'

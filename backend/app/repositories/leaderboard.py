@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from app.core.database import mongodb_database
+from app.core import database as mongodb_database
 from app.core.profile_helpers import document_to_profile_details
 from app.models import ProfileDocument
 from app.repositories.account import get_memory_profile_details
@@ -67,7 +67,7 @@ def _sort_profiles_by_level(profiles: list[ProfileDetails]) -> list[ProfileDetai
 
 
 async def build_leaderboard() -> LeaderboardResponse:
-    if mongodb_database is None:
+    if mongodb_database.mongodb_database is None:
         profile = get_memory_profile_details()
         return LeaderboardResponse(
             results=LeaderboardResults(

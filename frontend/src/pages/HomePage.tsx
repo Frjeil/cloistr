@@ -1,5 +1,4 @@
 import {
-  Alert,
   Autocomplete,
   Badge,
   Button,
@@ -13,6 +12,7 @@ import {
   Text,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
+import { notifications } from '@mantine/notifications'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useDeferredValue, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -38,8 +38,6 @@ export default function HomePage() {
   const [quiet, setQuiet] = useState(false)
   const [airConditioning, setAirConditioning] = useState(false)
   const [usePower, setUsePower] = useState(false)
-  const [actionMessage, setActionMessage] = useState<string | null>(null)
-  const [actionError, setActionError] = useState<string | null>(null)
   const [searchOpened, { open: openSearch, close: closeSearch }] = useDisclosure(false)
   const [filtersOpened, { open: openFilters, close: closeFilters }] = useDisclosure(false)
   const deferredSearch = useDeferredValue(search)
@@ -71,38 +69,32 @@ export default function HomePage() {
   const startMutation = useMutation({
     mutationFn: startCheckin,
     onSuccess: async () => {
-      setActionError(null)
-      setActionMessage(t('startSuccess'))
+      notifications.show({ color: 'green', message: t('startSuccess'), autoClose: 4000 })
       await syncSessionState()
     },
     onError: (error: unknown) => {
-      setActionMessage(null)
-      setActionError(
-        isHttpError(error)
-          ? (formatCheckinError(error.body) ?? error.message)
-          : error instanceof Error
-            ? error.message
-            : t('checkinError'),
-      )
+      const msg = isHttpError(error)
+        ? (formatCheckinError(error.body) ?? error.message)
+        : error instanceof Error
+          ? error.message
+          : t('checkinError')
+      notifications.show({ color: 'red', title: t('checkinErrorTitle'), message: msg, autoClose: 6000 })
     },
   })
 
   const endMutation = useMutation({
     mutationFn: endActiveCheckin,
     onSuccess: async () => {
-      setActionError(null)
-      setActionMessage(t('endSuccess'))
+      notifications.show({ color: 'green', message: t('endSuccess'), autoClose: 4000 })
       await syncSessionState()
     },
     onError: (error: unknown) => {
-      setActionMessage(null)
-      setActionError(
-        isHttpError(error)
-          ? (formatApiError(error.body) ?? error.message)
-          : error instanceof Error
-            ? error.message
-            : t('checkinError'),
-      )
+      const msg = isHttpError(error)
+        ? (formatApiError(error.body) ?? error.message)
+        : error instanceof Error
+          ? error.message
+          : t('checkinError')
+      notifications.show({ color: 'red', title: t('checkinErrorTitle'), message: msg, autoClose: 6000 })
     },
   })
 
@@ -130,8 +122,6 @@ export default function HomePage() {
   }
 
   const handleStartCheckin = (spaceId: string, usesPower: boolean) => {
-    setActionError(null)
-    setActionMessage(null)
     void startMutation.mutateAsync({ spaceId, usesPower })
   }
 
@@ -164,37 +154,25 @@ export default function HomePage() {
   return (
     <div style={{ position: 'relative', height: 'calc(100vh - 60px)', display: 'flex', flexDirection: 'column' }}>
       {activeCheckin ? (
-        <div style={{ position: 'absolute', top: 12, left: 12, right: 12, zIndex: 3000, maxWidth: 420 }}>
-          <Alert color="blue" variant="light" title={t('currentCheckinTitle')} withCloseButton={false}>
-            <Stack gap="sm">
-              <Text>
-                {t('currentCheckinBody', { space: activeCheckin.spaceName || t('unknownSpace') })}
-              </Text>
+        <Paper
+          shadow="md" p="sm" radius="md" withBorder
+          style={{ position: 'absolute', bottom: 16, left: 16, zIndex: 3000, maxWidth: 380 }}
+        >
+          <Group gap="sm" wrap="nowrap">
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <Group gap={4} mb={2}>
+                <Badge size="sm" variant="dot" color="blue" />
+                <Text size="sm" fw={600} truncate>{activeCheckin.spaceName || t('unknownSpace')}</Text>
+              </Group>
               {activeCheckin.usesPower ? (
-                <Badge variant="light" color="blue">{t('checkinUsesPower')}</Badge>
+                <Text size="xs" c="dimmed">{t('checkinUsesPower')}</Text>
               ) : null}
-              <Button onClick={() => void endMutation.mutateAsync(activeCheckin.id)} loading={endMutation.isPending}>
-                {t('endCheckin')}
-              </Button>
-            </Stack>
-          </Alert>
-        </div>
-      ) : null}
-
-      {actionError ? (
-        <div style={{ position: 'absolute', top: 12, left: 12, right: 12, zIndex: 3000, maxWidth: 420 }}>
-          <Alert color="red" variant="light" title={t('checkinErrorTitle')}>
-            {actionError}
-          </Alert>
-        </div>
-      ) : null}
-
-      {actionMessage ? (
-        <div style={{ position: 'absolute', top: 12, left: 12, right: 12, zIndex: 3000, maxWidth: 420 }}>
-          <Alert color="green" variant="light">
-            {actionMessage}
-          </Alert>
-        </div>
+            </div>
+            <Button size="xs" color="red" variant="light" onClick={() => void endMutation.mutateAsync(activeCheckin.id)} loading={endMutation.isPending}>
+              {t('endCheckin')}
+            </Button>
+          </Group>
+        </Paper>
       ) : null}
 
       <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
