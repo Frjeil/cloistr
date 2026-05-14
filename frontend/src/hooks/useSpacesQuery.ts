@@ -9,7 +9,6 @@ export function getSpacesQueryKey(filters: SpaceFilters) {
     ...spacesRootQueryKey,
     filters.q,
     filters.kind,
-    filters.minCapacity,
     filters.availability,
     filters.wifi,
     filters.power,

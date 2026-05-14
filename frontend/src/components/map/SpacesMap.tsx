@@ -1,9 +1,10 @@
 import 'maplibre-gl/dist/maplibre-gl.css'
 import maplibregl from 'maplibre-gl'
-import { IconFilter, IconSearch } from '@tabler/icons-react'
+import { IconFilter, IconSearch, IconX } from '@tabler/icons-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
+import { ActionIcon, Badge, Button, Group, Paper, Stack, Text } from '@mantine/core'
 import type { ActiveCheckin } from '../../types/auth'
 import type { SpaceSummary } from '../../types/spaces'
 import { useClusterIndex } from '../../hooks/useClusterIndex'
@@ -18,6 +19,7 @@ type Props = {
   activeCheckin: ActiveCheckin | null
   activeLabel: string
   isAuthenticated?: boolean
+  activeFilterCount?: number
   onSearchClick?: () => void
   onFilterClick?: () => void
   onStartCheckin?: (spaceId: string, usesPower: boolean) => void
@@ -26,6 +28,7 @@ type Props = {
 
 export function SpacesMap({
   spaces, activeCheckin, activeLabel, isAuthenticated = false,
+  activeFilterCount = 0,
   onSearchClick, onFilterClick, onStartCheckin, onEndCheckin,
 }: Props) {
   const { t } = useTranslation('spaces')
@@ -117,7 +120,7 @@ export function SpacesMap({
     if (!map || popupOpenRef.current) return
     popupOpenRef.current = true
     const container = document.createElement('div')
-    const popup = new maplibregl.Popup({ closeButton: true, closeOnClick: true, offset: 24 })
+    const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: true, offset: 24 })
     popup.on('close', () => { popupOpenRef.current = false; setPopupState(null) })
     popupRef.current = popup
     setPopupState({ space: point, container })
@@ -226,11 +229,6 @@ export function SpacesMap({
   const activeSpaceId = popupState?.space.id ?? detailSpace?.id
   const isActiveHere = !!activeCheckin && activeCheckin.spaceId === activeSpaceId
   const hasActiveElsewhere = !!activeCheckin && !isActiveHere
-  const bg = isLight ? '#fff' : '#1a1b1e'
-  const fg = isLight ? '#222' : '#e0e0e0'
-  const muted = isLight ? '#888' : '#999'
-  const badgeBg = isLight ? '#eef2ff' : '#2c2e33'
-  const badgeFg = isLight ? '#444' : '#ccc'
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: 480 }}>
@@ -238,22 +236,48 @@ export function SpacesMap({
       <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 2000 }}>
         <div style={{ display: 'flex', flexDirection: 'column', borderRadius: 4, overflow: 'hidden', boxShadow: '0 0 0 2px rgba(0,0,0,0.1)' }}>
           {onSearchClick && <MapBtn icon={<IconSearch size={16} />} label="Search" onClick={onSearchClick} top bottom={!onFilterClick} />}
-          {onFilterClick && <MapBtn icon={<IconFilter size={16} />} label="Filter" onClick={onFilterClick} top={!onSearchClick} bottom />}
+          {onFilterClick && (
+            <div style={{ position: 'relative' }}>
+              <MapBtn icon={<IconFilter size={16} />} label="Filter" onClick={onFilterClick} top={!onSearchClick} bottom />
+              {activeFilterCount > 0 && (
+                <span style={{
+                  position: 'absolute', top: -2, right: -2,
+                  background: 'var(--mantine-color-blue-filled)', color: '#fff',
+                  fontSize: 10, fontWeight: 700, lineHeight: 1.2,
+                  padding: '1px 5px', borderRadius: 10, minWidth: 16, textAlign: 'center',
+                }}>
+                  {activeFilterCount}
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
       {popupState && createPortal(
-        <div style={{ background: bg, borderRadius: 12, padding: 12, boxShadow: '0 2px 12px rgba(0,0,0,0.15)', width: 240, color: fg }}>
-          <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 2 }}>{popupState.space.name}</div>
-          <div style={{ fontSize: 11, color: muted, marginBottom: 6 }}>{popupState.space.address || 'Address not available'}</div>
-          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 6 }}>
-            <span style={{ fontSize: 10, background: badgeBg, padding: '1px 6px', borderRadius: 4, color: badgeFg }}>{popupState.space.kind ? t(`kindOptions.${popupState.space.kind}`) : t('kindOptions.other')}</span>
-            <span style={{ fontSize: 10, background: badgeBg, padding: '1px 6px', borderRadius: 4, color: badgeFg }}>{popupState.space.availability ? t(`availability.${popupState.space.availability}`) : t('availability.unknown')}</span>
-          </div>
-          <button type="button" onClick={() => openDetail(popupState.space)}
-            style={{ display: 'block', width: '100%', padding: '5px 10px', fontSize: 11, fontWeight: 600, background: isLight ? '#f0f0f0' : '#333', color: isLight ? '#333' : '#ddd', border: `1px solid ${isLight ? '#ddd' : '#555'}`, borderRadius: 6, cursor: 'pointer' }}>
-            {t('details.open')}
-          </button>
-        </div>,
+        <Paper withBorder p="md" radius="md" shadow="md" style={{ width: 260 }}>
+          <Stack gap={8}>
+            <Group gap="xs" justify="space-between" wrap="nowrap">
+              <Text fw={600} size="sm" truncate style={{ flex: 1 }}>{popupState.space.name}</Text>
+              <ActionIcon variant="subtle" size="sm" color="gray" onClick={closePopup}>
+                <IconX size={14} />
+              </ActionIcon>
+            </Group>
+            {popupState.space.address && (
+              <Text size="xs" c="dimmed">{popupState.space.address}</Text>
+            )}
+            <Group gap={4}>
+              <Badge size="sm" variant="light" color="blue">
+                {popupState.space.kind ? t(`kindOptions.${popupState.space.kind}`) : t('kindOptions.other')}
+              </Badge>
+              <Badge size="sm" variant="light" color={({ free: 'green', moderate: 'yellow', busy: 'red' } as Record<string, string>)[popupState.space.availability ?? ''] ?? 'gray'}>
+                {popupState.space.availability ? t(`availability.${popupState.space.availability}`) : t('availability.unknown')}
+              </Badge>
+            </Group>
+            <Button size="xs" variant="light" fullWidth onClick={() => openDetail(popupState.space)}>
+              {t('details.open')}
+            </Button>
+          </Stack>
+        </Paper>,
         popupState.container,
       )}
       <SpaceDetailModal

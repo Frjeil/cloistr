@@ -27,7 +27,7 @@
     "busy": "Busy",
     "unknown": "No status yet"
   },
-  "minCapacity": "Minimum seats",
+  "amenitiesLabel": "Amenities",
   "amenities": {
     "wifi": "Wi-Fi",
     "power": "Power",
@@ -35,6 +35,7 @@
     "airConditioning": "Air conditioning"
   },
   "clearFilters": "Clear filters",
+  "filtersDone": "Done",
   "checkinOptionsTitle": "Check-in options",
   "checkinUsesPower": "I need a power outlet for this check-in",
   "resultsTitle": "Matching spaces",

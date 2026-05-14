@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter
 
 from app.repositories.spaces import search_spaces as search_spaces_repository
 from app.schemas.space import (
@@ -15,7 +15,6 @@ router = APIRouter()
 async def search_spaces(
     q: str = "",
     kind: SpaceKind | None = None,
-    min_capacity: int = Query(default=0, ge=0),
     availability: SpaceAvailability | None = None,
     wifi: bool = False,
     power: bool = False,
@@ -25,7 +24,6 @@ async def search_spaces(
     filters = SpaceSearchFilters(
         q=q,
         kind=kind,
-        min_capacity=min_capacity,
         availability=availability,
         wifi=wifi,
         power=power,

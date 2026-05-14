@@ -9,7 +9,6 @@ describe('buildSpacesSearchParams', () => {
   const emptyFilters = {
     q: '',
     kind: '' as const,
-    minCapacity: 0,
     availability: '' as const,
     wifi: false,
     power: false,
@@ -30,13 +29,6 @@ describe('buildSpacesSearchParams', () => {
   it('includes kind filter', () => {
     const params = buildSpacesSearchParams({ ...emptyFilters, kind: 'cafe' })
     expect(params.get('kind')).toBe('cafe')
-  })
-
-  it('includes min_capacity only when positive', () => {
-    const zero = buildSpacesSearchParams({ ...emptyFilters, minCapacity: 0 })
-    expect(zero.has('min_capacity')).toBe(false)
-    const positive = buildSpacesSearchParams({ ...emptyFilters, minCapacity: 10 })
-    expect(positive.get('min_capacity')).toBe('10')
   })
 
   it('includes availability filter', () => {
@@ -64,12 +56,10 @@ describe('buildSpacesSearchParams', () => {
       q: 'study',
       kind: 'library',
       wifi: true,
-      minCapacity: 5,
     })
     expect(params.get('q')).toBe('study')
     expect(params.get('kind')).toBe('library')
     expect(params.get('wifi')).toBe('1')
-    expect(params.get('min_capacity')).toBe('5')
     expect(params.has('availability')).toBe(false)
   })
 })
@@ -83,7 +73,7 @@ describe('fetchSpaces', () => {
         { id: '2', name: 'Cafe', kind: 'cafe', wifi: false, power: true, quiet: false, air_conditioning: false, availability: 'busy', capacity: 30, power_capacity: 10 },
       ],
     })
-    const spaces = await fetchSpaces({ q: '', kind: '', minCapacity: 0, availability: '', wifi: false, power: false, quiet: false, airConditioning: false })
+    const spaces = await fetchSpaces({ q: '', kind: '', availability: '', wifi: false, power: false, quiet: false, airConditioning: false })
     expect(spaces).toHaveLength(2)
     expect(spaces[0].id).toBe('1')
     expect(spaces[0].kind).toBe('library')
@@ -100,7 +90,7 @@ describe('fetchSpaces', () => {
         { id: '3' },
       ],
     })
-    const spaces = await fetchSpaces({ q: '', kind: '', minCapacity: 0, availability: '', wifi: false, power: false, quiet: false, airConditioning: false })
+    const spaces = await fetchSpaces({ q: '', kind: '', availability: '', wifi: false, power: false, quiet: false, airConditioning: false })
     expect(spaces).toHaveLength(1)
     expect(spaces[0].id).toBe('1')
   })
@@ -108,21 +98,21 @@ describe('fetchSpaces', () => {
   it('handles missing results field', async () => {
     const { apiFetch } = await import('./client')
     vi.mocked(apiFetch).mockResolvedValueOnce({})
-    const spaces = await fetchSpaces({ q: '', kind: '', minCapacity: 0, availability: '', wifi: false, power: false, quiet: false, airConditioning: false })
+    const spaces = await fetchSpaces({ q: '', kind: '', availability: '', wifi: false, power: false, quiet: false, airConditioning: false })
     expect(spaces).toEqual([])
   })
 
   it('trims empty results', async () => {
     const { apiFetch } = await import('./client')
     vi.mocked(apiFetch).mockResolvedValueOnce({ results: [] })
-    const spaces = await fetchSpaces({ q: '', kind: '', minCapacity: 0, availability: '', wifi: false, power: false, quiet: false, airConditioning: false })
+    const spaces = await fetchSpaces({ q: '', kind: '', availability: '', wifi: false, power: false, quiet: false, airConditioning: false })
     expect(spaces).toEqual([])
   })
 
   it('builds search URL from params', async () => {
     const { apiFetch } = await import('./client')
     vi.mocked(apiFetch).mockResolvedValueOnce({ results: [] })
-    await fetchSpaces({ q: 'test', kind: 'library', minCapacity: 0, availability: '', wifi: false, power: false, quiet: false, airConditioning: false })
+    await fetchSpaces({ q: 'test', kind: 'library', availability: '', wifi: false, power: false, quiet: false, airConditioning: false })
     expect(vi.mocked(apiFetch)).toHaveBeenCalledWith(
       expect.stringContaining('q=test'),
       expect.any(Object),

@@ -65,9 +65,6 @@ export function buildSpacesSearchParams(filters: SpaceFilters): URLSearchParams 
   if (filters.kind) {
     params.set('kind', filters.kind)
   }
-  if (filters.minCapacity > 0) {
-    params.set('min_capacity', String(filters.minCapacity))
-  }
   if (filters.availability) {
     params.set('availability', filters.availability)
   }

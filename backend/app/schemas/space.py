@@ -25,7 +25,6 @@ class SpaceSummary(BaseModel):
 class SpaceSearchFilters(BaseModel):
     q: str = ""
     kind: SpaceKind | None = None
-    min_capacity: int = 0
     availability: SpaceAvailability | None = None
     wifi: bool = False
     power: bool = False

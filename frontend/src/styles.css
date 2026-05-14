@@ -185,8 +185,7 @@ a {
   padding: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
-  border-radius: 12px !important;
-  overflow: hidden;
+  border-radius: 8px !important;
 }
 
 .maplibregl-popup-tip {

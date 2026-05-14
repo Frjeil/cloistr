@@ -31,9 +31,6 @@ def _matches_filters(space: SpaceSummary, filters: SpaceSearchFilters) -> bool:
     if filters.kind and space.kind != filters.kind:
         return False
 
-    if filters.min_capacity > 0 and (space.capacity or 0) < filters.min_capacity:
-        return False
-
     if filters.availability and space.availability != filters.availability:
         return False
 
@@ -90,9 +87,6 @@ async def search_spaces(filters: SpaceSearchFilters) -> list[SpaceSummary]:
 
     if filters.kind:
         query["kind"] = filters.kind
-
-    if filters.min_capacity > 0:
-        query["capacity"] = {"$gte": filters.min_capacity}
 
     if filters.availability:
         query["availability"] = filters.availability

@@ -27,7 +27,7 @@
     "busy": "Affollato",
     "unknown": "Nessuno stato disponibile"
   },
-  "minCapacity": "Posti minimi",
+  "amenitiesLabel": "Servizi",
   "amenities": {
     "wifi": "Wi-Fi",
     "power": "Prese elettriche",
@@ -35,6 +35,7 @@
     "airConditioning": "Aria condizionata"
   },
   "clearFilters": "Pulisci filtri",
+  "filtersDone": "Fatto",
   "checkinOptionsTitle": "Opzioni check-in",
   "checkinUsesPower": "Mi serve una presa per questo check-in",
   "resultsTitle": "Spazi compatibili",

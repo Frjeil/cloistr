@@ -21,7 +21,6 @@ export type SpaceSummary = {
 export type SpaceFilters = {
   q: string
   kind: Exclude<SpaceKind, null> | ''
-  minCapacity: number
   availability: Exclude<SpaceAvailability, null> | ''
   wifi: boolean
   power: boolean
