@@ -1,5 +1,11 @@
 export type SpaceAvailability = 'free' | 'moderate' | 'busy' | null
 
+export const AVAILABILITY_COLORS: Record<NonNullable<SpaceAvailability>, string> = {
+  free: 'green',
+  moderate: 'yellow',
+  busy: 'red',
+}
+
 export type SpaceKind = 'library' | 'cafe' | 'classroom' | 'coworking' | 'other' | null
 
 export type SpaceSummary = {

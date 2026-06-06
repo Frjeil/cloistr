@@ -16,4 +16,5 @@ def document_to_profile_details(document: ProfileDocument) -> ProfileDetails:
         share_presence=document.share_presence,
         discord_handle=document.discord_handle,
         level=compute_level(document.xp),
+        earned_badges=document.earned_badges,
     )

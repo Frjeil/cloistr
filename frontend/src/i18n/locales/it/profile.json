@@ -12,6 +12,36 @@
     "lastCheckinDate": "Ultimo check-in",
     "never": "Mai"
   },
+  "personalStats": {
+    "title": "Statistiche studio",
+    "totalHoursStudied": "Ore studiate",
+    "longestSession": "Sessione più lunga",
+    "favoriteSpace": "Posto preferito",
+    "favoriteSpaceNone": "Nessun preferito ancora",
+    "mostActiveDay": "Giorno più attivo",
+    "avgCheckinDuration": "Durata media",
+    "favoriteTimeSlot": "Orario preferito",
+    "totalSpacesVisited": "Spazi visitati",
+    "minutes": "min",
+    "hours": "h",
+    "dayMonday": "Lunedì",
+    "dayTuesday": "Martedì",
+    "dayWednesday": "Mercoledì",
+    "dayThursday": "Giovedì",
+    "dayFriday": "Venerdì",
+    "daySaturday": "Sabato",
+    "daySunday": "Domenica",
+    "slotMorning": "Mattina",
+    "slotAfternoon": "Pomeriggio",
+    "slotEvening": "Sera",
+    "slotNight": "Notte"
+  },
+  "badges": {
+    "title": "Obiettivi",
+    "earned": "Ottenuti",
+    "locked": "Bloccati",
+    "noneEarned": "Nessun obiettivo ancora"
+  },
   "recentCheckins": {
     "title": "Check-in recenti",
     "empty": "Nessun check-in completato ancora.",

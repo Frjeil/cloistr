@@ -65,7 +65,9 @@ function renderHomePage() {
 }
 
 describe('HomePage', () => {
-  afterEach(() => { cleanup() })
+  afterEach(() => {
+    cleanup()
+  })
 
   beforeEach(() => {
     mockUseSpacesQuery.mockReset()
@@ -76,7 +78,10 @@ describe('HomePage', () => {
   it('renders the map with space markers', async () => {
     mockUseSpacesQuery.mockReturnValue({
       data: [mockSpace],
-      error: null, isError: false, isFetching: false, isPending: false,
+      error: null,
+      isError: false,
+      isFetching: false,
+      isPending: false,
     })
     renderHomePage()
     expect(await screen.findByText('Biblioteca Centrale')).toBeInTheDocument()
@@ -85,7 +90,10 @@ describe('HomePage', () => {
   it('starts a check-in from the map popup', async () => {
     mockUseSpacesQuery.mockReturnValue({
       data: [{ ...mockSpace, id: '7', name: 'Studio Nord' }],
-      error: null, isError: false, isFetching: false, isPending: false,
+      error: null,
+      isError: false,
+      isFetching: false,
+      isPending: false,
     })
     renderHomePage()
 

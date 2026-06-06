@@ -9,7 +9,7 @@
   "member": "Membro",
   "level": "Livello",
   "xp": "XP",
-  "checkinsOver1h": "Check-in (1/giorno)",
+  "checkinsOver1h": "Check-in",
   "streakDays": "Giorni streak",
   "noParticipants": "Nessun partecipante disponibile per questa classifica.",
   "nextLevel": "{{xp}} XP al prossimo livello",

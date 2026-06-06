@@ -36,7 +36,6 @@ backend/.coverage
 *.sln
 *.sw?
 .agents
-frontend/skills-lock.json
-frontend/.impeccable.md
-frontend/PRODUCT.md
+.impeccable
 PRODUCT.md
+DESIGN.md

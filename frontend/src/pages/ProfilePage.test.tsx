@@ -16,6 +16,8 @@ const mockUpdateProfileSettings = vi.fn()
 const mockUploadProfileAvatar = vi.fn()
 const mockDeleteProfileAvatar = vi.fn()
 const mockUseCheckinHistoryQuery = vi.fn()
+const mockUseBadgesQuery = vi.fn()
+const mockUseStatsQuery = vi.fn()
 
 vi.mock('../hooks/useProfileQuery', () => ({
   profileQueryKey: ['profile', 'me'],
@@ -45,11 +47,23 @@ vi.mock('../api/profile', () => ({
   uploadProfileAvatar: (...args: unknown[]) => mockUploadProfileAvatar(...args),
   deleteProfileAvatar: (...args: unknown[]) => mockDeleteProfileAvatar(...args),
   formatProfileError: () => null,
+  fetchBadges: vi.fn(),
+  fetchStats: vi.fn(),
 }))
 
 vi.mock('../hooks/useCheckinHistoryQuery', () => ({
   checkinHistoryQueryKey: ['checkins', 'history'],
   useCheckinHistoryQuery: () => mockUseCheckinHistoryQuery(),
+}))
+
+vi.mock('../hooks/useBadgesQuery', () => ({
+  badgesQueryKey: ['profile', 'badges'],
+  useBadgesQuery: () => mockUseBadgesQuery(),
+}))
+
+vi.mock('../hooks/useStatsQuery', () => ({
+  statsQueryKey: ['profile', 'stats'],
+  useStatsQuery: () => mockUseStatsQuery(),
 }))
 
 function renderProfilePage() {
@@ -97,6 +111,20 @@ describe('ProfilePage', () => {
       isFetching: false,
       isPending: false,
     })
+    mockUseBadgesQuery.mockReset().mockReturnValue({
+      data: null,
+      error: null,
+      isError: false,
+      isFetching: false,
+      isPending: false,
+    })
+    mockUseStatsQuery.mockReset().mockReturnValue({
+      data: null,
+      error: null,
+      isError: false,
+      isFetching: false,
+      isPending: false,
+    })
   })
 
   it('shows the profile query error state', async () => {
@@ -124,10 +152,10 @@ describe('ProfilePage', () => {
         username: 'cloistered',
         email: 'test@example.com',
         xp: 4200,
-      totalCheckins: 12,
-      activityStreakDays: 4,
-      lastCheckinDate: '2026-04-22',
-      avatarUrl: null,
+        totalCheckins: 12,
+        activityStreakDays: 4,
+        lastCheckinDate: '2026-04-22',
+        avatarUrl: null,
         sharePresence: true,
         discordHandle: '@owl',
         level: null,
@@ -151,6 +179,20 @@ describe('ProfilePage', () => {
           durationMinutes: 75,
         },
       ],
+      error: null,
+      isError: false,
+      isFetching: false,
+      isPending: false,
+    })
+    mockUseBadgesQuery.mockReturnValue({
+      data: { earned: [], all: [] },
+      error: null,
+      isError: false,
+      isFetching: false,
+      isPending: false,
+    })
+    mockUseStatsQuery.mockReturnValue({
+      data: null,
       error: null,
       isError: false,
       isFetching: false,

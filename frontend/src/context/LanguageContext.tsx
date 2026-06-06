@@ -1,4 +1,11 @@
-import { createContext, type PropsWithChildren, useContext, useEffect } from 'react'
+import {
+  createContext,
+  type PropsWithChildren,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 
 type SupportedLanguage = 'it' | 'en'
@@ -15,24 +22,29 @@ export function LanguageProvider({ children }: PropsWithChildren) {
   const { i18n } = useTranslation()
   const language = i18n.language.startsWith('en') ? 'en' : 'it'
 
-  const setLanguage = (nextLanguage: SupportedLanguage) => {
-    void i18n.changeLanguage(nextLanguage)
-    document.documentElement.lang = nextLanguage
-  }
+  const setLanguage = useCallback(
+    (nextLanguage: SupportedLanguage) => {
+      void i18n.changeLanguage(nextLanguage)
+      document.documentElement.lang = nextLanguage
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    [i18n.changeLanguage],
+  )
 
-  const toggleLanguage = () => {
+  const toggleLanguage = useCallback(() => {
     setLanguage(language === 'it' ? 'en' : 'it')
-  }
+  }, [language, setLanguage])
 
   useEffect(() => {
     document.documentElement.lang = language
   }, [language])
 
-  return (
-    <LanguageContext.Provider value={{ language, setLanguage, toggleLanguage }}>
-      {children}
-    </LanguageContext.Provider>
+  const value = useMemo(
+    () => ({ language, setLanguage, toggleLanguage }),
+    [language, setLanguage, toggleLanguage],
   )
+
+  return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>
 }
 
 export function useLanguage() {

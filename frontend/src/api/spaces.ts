@@ -1,5 +1,5 @@
 import type { SpaceFilters, SpaceSummary } from '../types/spaces'
-import { readIdentifier, readNumber, readString, readStrictBoolean } from '../utils/normalizers'
+import { readIdentifier, readNumber, readStrictBoolean, readString } from '../utils/normalizers'
 import { apiFetch } from './client'
 
 type SpacesApiResponse = {

@@ -69,11 +69,42 @@ describe('fetchSpaces', () => {
     const { apiFetch } = await import('./client')
     vi.mocked(apiFetch).mockResolvedValueOnce({
       results: [
-        { id: '1', name: 'Biblioteca', kind: 'library', wifi: true, power: false, quiet: true, air_conditioning: true, availability: 'free', latitude: 45.46, longitude: 9.19, address: 'Via Roma' },
-        { id: '2', name: 'Cafe', kind: 'cafe', wifi: false, power: true, quiet: false, air_conditioning: false, availability: 'busy', capacity: 30, power_capacity: 10 },
+        {
+          id: '1',
+          name: 'Biblioteca',
+          kind: 'library',
+          wifi: true,
+          power: false,
+          quiet: true,
+          air_conditioning: true,
+          availability: 'free',
+          latitude: 45.46,
+          longitude: 9.19,
+          address: 'Via Roma',
+        },
+        {
+          id: '2',
+          name: 'Cafe',
+          kind: 'cafe',
+          wifi: false,
+          power: true,
+          quiet: false,
+          air_conditioning: false,
+          availability: 'busy',
+          capacity: 30,
+          power_capacity: 10,
+        },
       ],
     })
-    const spaces = await fetchSpaces({ q: '', kind: '', availability: '', wifi: false, power: false, quiet: false, airConditioning: false })
+    const spaces = await fetchSpaces({
+      q: '',
+      kind: '',
+      availability: '',
+      wifi: false,
+      power: false,
+      quiet: false,
+      airConditioning: false,
+    })
     expect(spaces).toHaveLength(2)
     expect(spaces[0].id).toBe('1')
     expect(spaces[0].kind).toBe('library')
@@ -83,14 +114,17 @@ describe('fetchSpaces', () => {
   it('filters out invalid results', async () => {
     const { apiFetch } = await import('./client')
     vi.mocked(apiFetch).mockResolvedValueOnce({
-      results: [
-        { id: '1', name: 'Valid' },
-        { name: 'NoId' },
-        null,
-        { id: '3' },
-      ],
+      results: [{ id: '1', name: 'Valid' }, { name: 'NoId' }, null, { id: '3' }],
     })
-    const spaces = await fetchSpaces({ q: '', kind: '', availability: '', wifi: false, power: false, quiet: false, airConditioning: false })
+    const spaces = await fetchSpaces({
+      q: '',
+      kind: '',
+      availability: '',
+      wifi: false,
+      power: false,
+      quiet: false,
+      airConditioning: false,
+    })
     expect(spaces).toHaveLength(1)
     expect(spaces[0].id).toBe('1')
   })
@@ -98,21 +132,45 @@ describe('fetchSpaces', () => {
   it('handles missing results field', async () => {
     const { apiFetch } = await import('./client')
     vi.mocked(apiFetch).mockResolvedValueOnce({})
-    const spaces = await fetchSpaces({ q: '', kind: '', availability: '', wifi: false, power: false, quiet: false, airConditioning: false })
+    const spaces = await fetchSpaces({
+      q: '',
+      kind: '',
+      availability: '',
+      wifi: false,
+      power: false,
+      quiet: false,
+      airConditioning: false,
+    })
     expect(spaces).toEqual([])
   })
 
   it('trims empty results', async () => {
     const { apiFetch } = await import('./client')
     vi.mocked(apiFetch).mockResolvedValueOnce({ results: [] })
-    const spaces = await fetchSpaces({ q: '', kind: '', availability: '', wifi: false, power: false, quiet: false, airConditioning: false })
+    const spaces = await fetchSpaces({
+      q: '',
+      kind: '',
+      availability: '',
+      wifi: false,
+      power: false,
+      quiet: false,
+      airConditioning: false,
+    })
     expect(spaces).toEqual([])
   })
 
   it('builds search URL from params', async () => {
     const { apiFetch } = await import('./client')
     vi.mocked(apiFetch).mockResolvedValueOnce({ results: [] })
-    await fetchSpaces({ q: 'test', kind: 'library', availability: '', wifi: false, power: false, quiet: false, airConditioning: false })
+    await fetchSpaces({
+      q: 'test',
+      kind: 'library',
+      availability: '',
+      wifi: false,
+      power: false,
+      quiet: false,
+      airConditioning: false,
+    })
     expect(vi.mocked(apiFetch)).toHaveBeenCalledWith(
       expect.stringContaining('q=test'),
       expect.any(Object),

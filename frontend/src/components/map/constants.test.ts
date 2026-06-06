@@ -1,5 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { loadView, persistView, DEFAULT_CENTER } from './constants'
+import type maplibregl from 'maplibre-gl'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { loadView, persistView } from './constants'
 
 describe('loadView', () => {
   beforeEach(() => {
@@ -29,14 +30,14 @@ describe('persistView', () => {
 
   it('saves map view to localStorage', () => {
     const mockMap = {
-      getCenter: () => ({ toArray: () => [9.20, 45.47] }),
+      getCenter: () => ({ toArray: () => [9.2, 45.47] }),
       getZoom: () => 15,
     }
-    persistView(mockMap as any)
+    persistView(mockMap as unknown as maplibregl.Map)
     const saved = localStorage.getItem('cloistr_map_view')
     expect(saved).not.toBeNull()
-    const parsed = JSON.parse(saved!)
-    expect(parsed.center).toEqual([9.20, 45.47])
+    const parsed = JSON.parse(saved ?? '')
+    expect(parsed.center).toEqual([9.2, 45.47])
     expect(parsed.zoom).toBe(15)
   })
 
@@ -48,7 +49,7 @@ describe('persistView', () => {
       getCenter: () => ({ toArray: () => [9.19, 45.46] }),
       getZoom: () => 12,
     }
-    expect(() => persistView(mockMap as any)).not.toThrow()
+    expect(() => persistView(mockMap as unknown as maplibregl.Map)).not.toThrow()
     setItemSpy.mockRestore()
   })
 })

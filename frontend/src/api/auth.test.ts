@@ -54,10 +54,10 @@ describe('normalizeSessionPayload', () => {
       },
     })
     expect(result).not.toBeNull()
-    expect(result!.user!.id).toBe('user1')
-    expect(result!.user!.username).toBe('testuser')
-    expect(result!.activeCheckin!.id).toBe('checkin1')
-    expect(result!.activeCheckin!.spaceId).toBe('space1')
+    expect(result?.user?.id).toBe('user1')
+    expect(result?.user?.username).toBe('testuser')
+    expect(result?.activeCheckin?.id).toBe('checkin1')
+    expect(result?.activeCheckin?.spaceId).toBe('space1')
   })
 
   it('normalizes a nested user payload', () => {
@@ -65,9 +65,9 @@ describe('normalizeSessionPayload', () => {
       user: { id: 'user2', username: 'nested' },
     })
     expect(result).not.toBeNull()
-    expect(result!.user!.id).toBe('user2')
-    expect(result!.user!.username).toBe('nested')
-    expect(result!.activeCheckin).toBeNull()
+    expect(result?.user?.id).toBe('user2')
+    expect(result?.user?.username).toBe('nested')
+    expect(result?.activeCheckin).toBeNull()
   })
 
   it('returns null when neither user structure is valid', () => {
@@ -77,13 +77,13 @@ describe('normalizeSessionPayload', () => {
   it('handles missing profile gracefully', () => {
     const result = normalizeSessionPayload({ id: 'user1', username: 'testuser' })
     expect(result).not.toBeNull()
-    expect(result!.user!.profile).toBeNull()
+    expect(result?.user?.profile).toBeNull()
   })
 
   it('handles missing active_checkin gracefully', () => {
     const result = normalizeSessionPayload({ id: 'user1', username: 'testuser' })
     expect(result).not.toBeNull()
-    expect(result!.activeCheckin).toBeNull()
+    expect(result?.activeCheckin).toBeNull()
   })
 
   it('handles partial active_checkin data', () => {
@@ -93,8 +93,8 @@ describe('normalizeSessionPayload', () => {
       active_checkin: { id: 'c1', space_id: 's1' },
     })
     expect(result).not.toBeNull()
-    expect(result!.activeCheckin!.id).toBe('c1')
-    expect(result!.activeCheckin!.spaceName).toBeNull()
+    expect(result?.activeCheckin?.id).toBe('c1')
+    expect(result?.activeCheckin?.spaceName).toBeNull()
   })
 
   it('rejects active_checkin without id', () => {
@@ -104,7 +104,7 @@ describe('normalizeSessionPayload', () => {
       active_checkin: { space_id: 's1' },
     })
     expect(result).not.toBeNull()
-    expect(result!.activeCheckin).toBeNull()
+    expect(result?.activeCheckin).toBeNull()
   })
 })
 
@@ -164,7 +164,10 @@ describe('auth API functions', () => {
   it('registerUser calls POST auth/register/', async () => {
     await mockClient({ id: 'u1', username: 'newuser' })
     const result = await registerUser({
-      username: 'newuser', email: 'test@test.com', password1: 'pw1', password2: 'pw1',
+      username: 'newuser',
+      email: 'test@test.com',
+      password1: 'pw1',
+      password2: 'pw1',
     })
     const { apiFetch } = await import('./client')
     expect(vi.mocked(apiFetch)).toHaveBeenCalledWith(
@@ -200,7 +203,12 @@ describe('auth API functions', () => {
     await mockClient(null)
     const { apiFetch } = await import('./client')
     vi.mocked(apiFetch).mockResolvedValue(null)
-    await confirmPasswordReset({ uid: 'u1', token: 'tok', new_password1: 'pw1', new_password2: 'pw1' })
+    await confirmPasswordReset({
+      uid: 'u1',
+      token: 'tok',
+      new_password1: 'pw1',
+      new_password2: 'pw1',
+    })
     expect(vi.mocked(apiFetch)).toHaveBeenCalledWith(
       '/api/auth/password/reset/confirm/',
       expect.objectContaining({ method: 'POST' }),

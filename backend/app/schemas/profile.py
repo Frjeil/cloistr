@@ -1,4 +1,5 @@
 from datetime import date
+from typing import Literal
 
 from pydantic import BaseModel
 
@@ -33,6 +34,7 @@ class ProfileDetails(BaseModel):
     share_presence: bool = True
     discord_handle: str | None = None
     level: ProfileLevel | None = None
+    earned_badges: list[str] = []
 
 
 class ProfileUpdatePayload(BaseModel):
@@ -41,3 +43,39 @@ class ProfileUpdatePayload(BaseModel):
     current_password: str = ""
     discord_handle: str = ""
     share_presence: bool = True
+
+
+class BadgeInfo(BaseModel):
+    slug: str
+    name: str
+    description: str
+    icon: str
+
+
+class BadgeListResponse(BaseModel):
+    earned: list[str]
+    all: list[BadgeInfo]
+
+
+class FavoriteSpaceRef(BaseModel):
+    id: str | None = None
+    name: str | None = None
+
+
+class FavoriteSpace(BaseModel):
+    id: str
+    name: str
+    address: str | None = None
+    kind: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+
+
+class PersonalStatsResponse(BaseModel):
+    total_hours_studied: float = 0.0
+    longest_session: int = 0
+    favorite_space: FavoriteSpaceRef | None = None
+    most_active_day: int = 0
+    avg_checkin_duration: int = 0
+    favorite_time_slot: Literal["morning", "afternoon", "evening", "night"] = "morning"
+    total_spaces_visited: int = 0

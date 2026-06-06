@@ -6,8 +6,8 @@ import {
   Paper,
   Stack,
   Text,
-  TextInput,
   Textarea,
+  TextInput,
   Title,
 } from '@mantine/core'
 import { useMutation } from '@tanstack/react-query'
@@ -21,7 +21,8 @@ export default function ContactsPage() {
   const { t: tp } = useTranslation('pages')
   const { t: ta } = useTranslation('auth')
   const t = (key: string) => {
-    const v = tp(key); return v !== key ? v : ta(key)
+    const v = tp(key)
+    return v !== key ? v : ta(key)
   }
   const {
     register,
@@ -59,7 +60,7 @@ export default function ContactsPage() {
       {mutation.isError ? (
         <Alert color="red" variant="light" title={t('contacts.form.error')}>
           {isHttpError(mutation.error)
-            ? (mutation.error.body as { detail?: string })?.detail ?? mutation.error.message
+            ? ((mutation.error.body as { detail?: string })?.detail ?? mutation.error.message)
             : mutation.error instanceof Error
               ? mutation.error.message
               : t('contacts.form.error')}

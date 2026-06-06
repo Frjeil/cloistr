@@ -12,6 +12,36 @@
     "lastCheckinDate": "Last check-in",
     "never": "Never"
   },
+  "personalStats": {
+    "title": "Study stats",
+    "totalHoursStudied": "Hours studied",
+    "longestSession": "Longest session",
+    "favoriteSpace": "Favorite spot",
+    "favoriteSpaceNone": "No favorite yet",
+    "mostActiveDay": "Most active day",
+    "avgCheckinDuration": "Avg duration",
+    "favoriteTimeSlot": "Best time",
+    "totalSpacesVisited": "Spaces visited",
+    "minutes": "min",
+    "hours": "h",
+    "dayMonday": "Monday",
+    "dayTuesday": "Tuesday",
+    "dayWednesday": "Wednesday",
+    "dayThursday": "Thursday",
+    "dayFriday": "Friday",
+    "daySaturday": "Saturday",
+    "daySunday": "Sunday",
+    "slotMorning": "Morning",
+    "slotAfternoon": "Afternoon",
+    "slotEvening": "Evening",
+    "slotNight": "Night"
+  },
+  "badges": {
+    "title": "Achievements",
+    "earned": "Earned",
+    "locked": "Locked",
+    "noneEarned": "No achievements yet"
+  },
   "recentCheckins": {
     "title": "Recent check-ins",
     "empty": "No completed check-ins yet.",

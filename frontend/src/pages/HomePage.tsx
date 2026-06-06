@@ -1,4 +1,5 @@
 import {
+  Alert,
   Autocomplete,
   Button,
   Checkbox,
@@ -29,13 +30,13 @@ export default function HomePage() {
   const queryClient = useQueryClient()
   const { activeCheckin, isAuthenticated, refreshSession } = useAuth()
   const [search, setSearch] = useState('')
-  const [confirmedSearch, setConfirmedSearch] = useState('')
   const [kind, setKind] = useState<SpaceFilters['kind']>('')
   const [availability, setAvailability] = useState<SpaceFilters['availability']>('')
   const [wifi, setWifi] = useState(false)
   const [power, setPower] = useState(false)
   const [quiet, setQuiet] = useState(false)
   const [airConditioning, setAirConditioning] = useState(false)
+  const [flyToTarget, setFlyToTarget] = useState<{ longitude: number; latitude: number } | null>(null)
   const [searchOpened, { open: openSearch, close: closeSearch }] = useDisclosure(false)
   const [filtersOpened, filtersCtrl] = useDisclosure(false)
 
@@ -55,7 +56,7 @@ export default function HomePage() {
 
   const filters = useMemo<SpaceFilters>(
     () => ({
-      q: confirmedSearch,
+      q: '',
       kind,
       availability,
       wifi,
@@ -63,17 +64,23 @@ export default function HomePage() {
       quiet,
       airConditioning,
     }),
-    [airConditioning, availability, confirmedSearch, kind, power, quiet, wifi],
+    [airConditioning, availability, kind, power, quiet, wifi],
   )
 
   const spacesQuery = useSpacesQuery(filters)
 
   const { data: allSpaces } = useQuery({
     queryKey: ['spaces', 'all'],
-    queryFn: () => fetchSpaces({
-      q: '', kind: '', availability: '',
-      wifi: false, power: false, quiet: false, airConditioning: false,
-    }),
+    queryFn: () =>
+      fetchSpaces({
+        q: '',
+        kind: '',
+        availability: '',
+        wifi: false,
+        power: false,
+        quiet: false,
+        airConditioning: false,
+      }),
     staleTime: 120_000,
   })
 
@@ -84,7 +91,13 @@ export default function HomePage() {
   }, [allSpaces])
 
   const confirmSearch = (value: string) => {
-    setConfirmedSearch(value)
+    setSearch(value)
+    const match = allSpaces?.find(
+      (s) => s.name.toLowerCase() === value.toLowerCase() && s.latitude !== null && s.longitude !== null,
+    )
+    if (match && match.latitude !== null && match.longitude !== null) {
+      setFlyToTarget({ longitude: match.longitude, latitude: match.latitude })
+    }
     closeSearch()
   }
 
@@ -108,7 +121,12 @@ export default function HomePage() {
         : error instanceof Error
           ? error.message
           : t('checkinError')
-      notifications.show({ color: 'red', title: t('checkinErrorTitle'), message: msg, autoClose: 6000 })
+      notifications.show({
+        color: 'red',
+        title: t('checkinErrorTitle'),
+        message: msg,
+        autoClose: 6000,
+      })
     },
   })
 
@@ -124,7 +142,12 @@ export default function HomePage() {
         : error instanceof Error
           ? error.message
           : t('checkinError')
-      notifications.show({ color: 'red', title: t('checkinErrorTitle'), message: msg, autoClose: 6000 })
+      notifications.show({
+        color: 'red',
+        title: t('checkinErrorTitle'),
+        message: msg,
+        autoClose: 6000,
+      })
     },
   })
 
@@ -149,8 +172,12 @@ export default function HomePage() {
 
   const resetPendingFilters = () => {
     setPendingFilters({
-      kind: '', availability: '',
-      wifi: false, power: false, quiet: false, airConditioning: false,
+      kind: '',
+      availability: '',
+      wifi: false,
+      power: false,
+      quiet: false,
+      airConditioning: false,
     })
   }
 
@@ -194,10 +221,20 @@ export default function HomePage() {
   ]
 
   return (
-    <div style={{ position: 'relative', height: 'calc(100vh - 60px)', display: 'flex', flexDirection: 'column' }}>
+    <div
+      style={{
+        position: 'relative',
+        height: 'calc(100vh - 60px)',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
       {activeCheckin ? (
         <Paper
-          withBorder p="md" radius="md" shadow="md"
+          withBorder
+          p="md"
+          radius="md"
+          shadow="md"
           style={{ position: 'absolute', bottom: 16, left: 16, zIndex: 3000, maxWidth: 360 }}
         >
           <Group gap="sm" wrap="nowrap">
@@ -206,10 +243,18 @@ export default function HomePage() {
                 {activeCheckin.spaceName || t('unknownSpace')}
               </Text>
               {activeCheckin.usesPower && (
-                <Text size="xs" c="dimmed">{t('checkinUsesPower')}</Text>
+                <Text size="xs" c="dimmed">
+                  {t('checkinUsesPower')}
+                </Text>
               )}
             </div>
-            <Button size="compact-sm" color="red" variant="light" onClick={() => void endMutation.mutateAsync(activeCheckin.id)} loading={endMutation.isPending}>
+            <Button
+              size="compact-sm"
+              color="red"
+              variant="light"
+              onClick={() => void endMutation.mutateAsync(activeCheckin.id)}
+              loading={endMutation.isPending}
+            >
               {t('endCheckin')}
             </Button>
           </Group>
@@ -217,12 +262,25 @@ export default function HomePage() {
       ) : null}
 
       <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
+        {spacesQuery.isError ? (
+          <div style={{ position: 'absolute', top: 16, left: 16, right: 16, zIndex: 1000 }}>
+            <Alert
+              color="red"
+              variant="filled"
+              title={t('fetchErrorTitle')}
+              withCloseButton
+              onClose={() => void spacesQuery.refetch()}
+            >
+              {spacesQuery.error instanceof Error ? spacesQuery.error.message : t('fetchError')}
+            </Alert>
+          </div>
+        ) : null}
         <SpacesMap
           spaces={spacesQuery.data ?? []}
           activeCheckin={activeCheckin}
-          activeLabel={t('activeHere')}
           isAuthenticated={isAuthenticated}
           activeFilterCount={activeFilterCount}
+          flyToTarget={flyToTarget}
           onStartCheckin={handleStartCheckin}
           onEndCheckin={handleEndCheckin}
           onSearchClick={openSearch}
@@ -235,10 +293,14 @@ export default function HomePage() {
         onClose={closeSearch}
         title={t('search')}
         size="sm"
-        yOffset={80}
         scrollAreaComponent={undefined}
       >
-        <form onSubmit={(e) => { e.preventDefault(); confirmSearch(search) }}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            confirmSearch(search)
+          }}
+        >
           <Autocomplete
             placeholder={t('searchPlaceholder')}
             value={search}
@@ -256,14 +318,20 @@ export default function HomePage() {
         onClose={discardFilters}
         title={t('filtersTitle')}
         size="md"
-        yOffset={80}
         scrollAreaComponent={undefined}
       >
         <Stack gap="xl">
           <Group grow align="flex-start" gap="lg">
             <div>
-              <Text size="sm" fw={600} mb={6}>{t('kind')}</Text>
-              <Chip.Group value={pendingFilters.kind} onChange={(v) => setPendingFilters((prev) => ({ ...prev, kind: v as SpaceFilters['kind'] }))}>
+              <Text size="sm" fw={600} mb={6}>
+                {t('kind')}
+              </Text>
+              <Chip.Group
+                value={pendingFilters.kind}
+                onChange={(v) =>
+                  setPendingFilters((prev) => ({ ...prev, kind: v as SpaceFilters['kind'] }))
+                }
+              >
                 <Group gap="xs">
                   {kindOptions.map((opt) => (
                     <Chip key={opt.value} value={opt.value} size="sm" variant="light">
@@ -274,8 +342,18 @@ export default function HomePage() {
               </Chip.Group>
             </div>
             <div>
-              <Text size="sm" fw={600} mb={6}>{t('availabilityLabel')}</Text>
-              <Chip.Group value={pendingFilters.availability} onChange={(v) => setPendingFilters((prev) => ({ ...prev, availability: v as SpaceFilters['availability'] }))}>
+              <Text size="sm" fw={600} mb={6}>
+                {t('availabilityLabel')}
+              </Text>
+              <Chip.Group
+                value={pendingFilters.availability}
+                onChange={(v) =>
+                  setPendingFilters((prev) => ({
+                    ...prev,
+                    availability: v as SpaceFilters['availability'],
+                  }))
+                }
+              >
                 <Group gap="xs">
                   {availabilityOptions.map((opt) => (
                     <Chip key={opt.value} value={opt.value} size="sm" variant="light">
@@ -288,31 +366,37 @@ export default function HomePage() {
           </Group>
 
           <div>
-            <Text size="sm" fw={600} mb={8}>{t('amenitiesLabel')}</Text>
+            <Text size="sm" fw={600} mb={8}>
+              {t('amenitiesLabel')}
+            </Text>
             <Group gap="sm">
               <Checkbox
-                label={t('amenities.wifi')} checked={pendingFilters.wifi}
+                label={t('amenities.wifi')}
+                checked={pendingFilters.wifi}
                 onChange={(event) => {
                   const checked = event.currentTarget.checked
                   setPendingFilters((prev) => ({ ...prev, wifi: checked }))
                 }}
               />
               <Checkbox
-                label={t('amenities.power')} checked={pendingFilters.power}
+                label={t('amenities.power')}
+                checked={pendingFilters.power}
                 onChange={(event) => {
                   const checked = event.currentTarget.checked
                   setPendingFilters((prev) => ({ ...prev, power: checked }))
                 }}
               />
               <Checkbox
-                label={t('amenities.quiet')} checked={pendingFilters.quiet}
+                label={t('amenities.quiet')}
+                checked={pendingFilters.quiet}
                 onChange={(event) => {
                   const checked = event.currentTarget.checked
                   setPendingFilters((prev) => ({ ...prev, quiet: checked }))
                 }}
               />
               <Checkbox
-                label={t('amenities.airConditioning')} checked={pendingFilters.airConditioning}
+                label={t('amenities.airConditioning')}
+                checked={pendingFilters.airConditioning}
                 onChange={(event) => {
                   const checked = event.currentTarget.checked
                   setPendingFilters((prev) => ({ ...prev, airConditioning: checked }))

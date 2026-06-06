@@ -43,6 +43,8 @@
   "refreshHint": "I risultati si aggiornano automaticamente mentre filtri",
   "errorTitle": "Impossibile caricare gli spazi",
   "error": "Si è verificato un problema durante il caricamento degli spazi. Riprova tra poco.",
+  "fetchErrorTitle": "Impossibile caricare la mappa",
+  "fetchError": "Non è stato possibile caricare gli spazi. Controlla la connessione.",
   "emptyTitle": "Nessuno spazio corrisponde ai filtri attuali",
   "emptyDescription": "Prova ad ampliare la ricerca o a rimuovere uno dei filtri attivi.",
   "addressMissing": "Indirizzo non disponibile",
@@ -61,6 +63,8 @@
   "endSuccess": "Check-in terminato correttamente.",
   "checkinErrorTitle": "Azione check-in non riuscita",
   "checkinError": "Impossibile completare l'azione di check-in. Riprova.",
+  "addFavorite": "Aggiungi ai preferiti",
+  "removeFavorite": "Rimuovi dai preferiti",
   "details": {
     "open": "Apri dettagli",
     "title": "Dettagli spazio",

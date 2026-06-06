@@ -20,7 +20,7 @@
   --app-selection-text: oklch(0.18 0.03 255);
 }
 
-[data-mantine-color-scheme='dark'] {
+[data-mantine-color-scheme="dark"] {
   color-scheme: dark;
   filter: saturate(0.9);
   --app-text: oklch(0.95 0.015 255);
@@ -101,7 +101,7 @@ a {
 }
 
 .space-map-marker::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 4px;
   border-radius: 999px;
@@ -119,6 +119,27 @@ a {
   inset: 5px;
 }
 
+.space-map-marker--highlighted {
+  animation: markerRing 1.5s ease-out infinite;
+}
+
+.space-map-marker--highlighted::after {
+  inset: 5px;
+}
+
+@keyframes markerRing {
+  0% {
+    box-shadow:
+      0 0 0 4px oklch(0.4 0.15 260 / 0.18),
+      0 0 0 0 oklch(0.85 0.15 55 / 0.6);
+  }
+  100% {
+    box-shadow:
+      0 0 0 4px oklch(0.4 0.15 260 / 0.18),
+      0 0 0 12px oklch(0.85 0.15 55 / 0);
+  }
+}
+
 .space-map-cluster {
   display: flex;
   align-items: center;
@@ -126,7 +147,7 @@ a {
   border: 0;
   border-radius: 999px;
   cursor: pointer;
-  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
   font-weight: 700;
   color: #fff;
   transition: transform 200ms ease-out;
@@ -182,19 +203,19 @@ a {
 }
 
 .maplibregl-popup-content {
-  padding: 0 !important;
+  padding: 0;
   background: transparent !important;
-  box-shadow: none !important;
-  border-radius: 8px !important;
+  box-shadow: none;
+  border-radius: 8px;
 }
 
 .maplibregl-popup-tip {
-  display: none !important;
+  display: none;
 }
 
 .maplibregl-popup-wrapper {
-  background: transparent !important;
-  box-shadow: none !important;
+  background: transparent;
+  box-shadow: none;
 }
 
 @keyframes markerPop {

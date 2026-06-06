@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { apiFetch, HttpError, isHttpError, ensureCsrfCookie } from './client'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { apiFetch, ensureCsrfCookie, HttpError, isHttpError } from './client'
 
 function setCsrfCookie(value: string | null) {
   Object.defineProperty(document, 'cookie', {
@@ -50,7 +50,10 @@ describe('ensureCsrfCookie', () => {
   it('fetches CSRF endpoint when cookie is missing', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(null, { status: 200 }))
     await ensureCsrfCookie()
-    expect(globalThis.fetch).toHaveBeenCalledWith(expect.stringContaining('/api/auth/csrf/'), expect.objectContaining({ credentials: 'include' }))
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/auth/csrf/'),
+      expect.objectContaining({ credentials: 'include' }),
+    )
   })
 })
 
@@ -62,7 +65,10 @@ describe('apiFetch', () => {
 
   it('makes a GET request and parses JSON', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
-      new Response(JSON.stringify({ data: 'ok' }), { status: 200, headers: { 'Content-Type': 'application/json' } }),
+      new Response(JSON.stringify({ data: 'ok' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
     )
     const result = await apiFetch<{ data: string }>('/test/')
     expect(result).toEqual({ data: 'ok' })
@@ -131,9 +137,7 @@ describe('apiFetch', () => {
   })
 
   it('returns null for parse mode none', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
-      new Response('ignored', { status: 200 }),
-    )
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response('ignored', { status: 200 }))
     const result = await apiFetch<null>('/test/', { parse: 'none' })
     expect(result).toBeNull()
   })

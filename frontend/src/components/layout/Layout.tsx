@@ -183,9 +183,7 @@ export default function Layout({ children }: PropsWithChildren) {
         </Stack>
       </Drawer>
       <AppShell.Main>
-        <div style={{ minHeight: 'calc(100vh - 60px)' }}>
-          {children}
-        </div>
+        <div style={{ minHeight: 'calc(100vh - 60px)' }}>{children}</div>
         <Divider />
         <Container size="xl" py="xl">
           <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="xl">
@@ -210,7 +208,12 @@ export default function Layout({ children }: PropsWithChildren) {
                   </ActionIcon>
                 </AppTooltip>
                 <AppTooltip label={t('contacts', { ns: 'nav' })}>
-                  <ActionIcon component={NavLink} to="/contacts" variant="subtle" aria-label="Contacts">
+                  <ActionIcon
+                    component={NavLink}
+                    to="/contacts"
+                    variant="subtle"
+                    aria-label="Contacts"
+                  >
                     <IconMail size={18} />
                   </ActionIcon>
                 </AppTooltip>
@@ -261,10 +264,14 @@ export default function Layout({ children }: PropsWithChildren) {
                 <Button
                   variant="subtle"
                   size="compact-sm"
-                  leftSection={colorScheme === 'light' ? <IconMoonStars size={16} /> : <IconSun size={16} />}
+                  leftSection={
+                    colorScheme === 'light' ? <IconMoonStars size={16} /> : <IconSun size={16} />
+                  }
                   onClick={() => setColorScheme(colorScheme === 'light' ? 'dark' : 'light')}
                 >
-                  {colorScheme === 'light' ? t('themeDark', { ns: 'nav' }) : t('themeLight', { ns: 'nav' })}
+                  {colorScheme === 'light'
+                    ? t('themeDark', { ns: 'nav' })
+                    : t('themeLight', { ns: 'nav' })}
                 </Button>
                 <Button variant="subtle" size="compact-sm" onClick={toggleLanguage}>
                   {language === 'it' ? 'English' : 'Italiano'}

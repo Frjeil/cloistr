@@ -20,5 +20,7 @@ export function persistView(map: maplibregl.Map) {
   const data = { center: map.getCenter().toArray() as [number, number], zoom: map.getZoom() }
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
-  } catch { /* */ }
+  } catch {
+    /* */
+  }
 }

@@ -43,7 +43,9 @@ export default function PasswordResetConfirmPage() {
       })
       setSuccess(true)
     } catch (caughtError) {
-      setError(caughtError instanceof Error ? caughtError.message : t('passwordResetConfirm.networkError'))
+      setError(
+        caughtError instanceof Error ? caughtError.message : t('passwordResetConfirm.networkError'),
+      )
     }
   }
 

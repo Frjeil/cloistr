@@ -43,7 +43,9 @@ export default function PasswordChangePage() {
       })
       setSuccess(true)
     } catch (caughtError) {
-      setError(caughtError instanceof Error ? caughtError.message : t('passwordChange.networkError'))
+      setError(
+        caughtError instanceof Error ? caughtError.message : t('passwordChange.networkError'),
+      )
     }
   }
 

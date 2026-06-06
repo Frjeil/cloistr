@@ -18,6 +18,7 @@ SAMPLE_PROFILE = ProfileDetails(
     avatar_url=None,
     share_presence=True,
     discord_handle="@cloistr",
+    earned_badges=["first_checkin", "streak_7"],
     level=ProfileLevel(
         slug="scribe",
         name="Scribe",

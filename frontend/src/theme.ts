@@ -19,6 +19,10 @@ export const theme = createTheme({
     },
     Paper: { defaultProps: { radius: 'md' } },
     Container: { defaultProps: { size: 'lg' } },
+    Modal: { defaultProps: { radius: 'md', yOffset: 80 } },
+    Select: { defaultProps: { radius: 'md' } },
+    Chip: { defaultProps: { radius: 'md' } },
+    Drawer: { defaultProps: { radius: 'md' } },
     ActionIcon: {
       styles: {
         root: { transition: 'all 200ms ease-out' },

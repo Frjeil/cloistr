@@ -1,6 +1,7 @@
+import type { ActiveCheckinUser, CheckinHistoryEntry } from '../types/checkins'
+import { readNumber, readStrictBoolean, readString } from '../utils/normalizers'
 import { formatApiError } from './auth'
 import { apiFetch } from './client'
-import type { ActiveCheckinUser, CheckinHistoryEntry } from '../types/checkins'
 
 export type StartCheckinPayload = {
   spaceId: string
@@ -32,34 +33,6 @@ export async function endActiveCheckin(checkinId: string): Promise<void> {
   })
 }
 
-type CheckinHistoryApiResponse = {
-  results?: unknown[]
-}
-
-function readString(value: unknown): string | null {
-  return typeof value === 'string' && value.trim() ? value.trim() : null
-}
-
-function readBoolean(value: unknown): boolean {
-  return value === true
-}
-
-function readNumber(value: unknown): number | null {
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return value
-  }
-
-  if (typeof value === 'string' && value.trim()) {
-    const parsed = Number(value)
-
-    if (Number.isFinite(parsed)) {
-      return parsed
-    }
-  }
-
-  return null
-}
-
 function normalizeCheckinHistoryEntry(payload: unknown): CheckinHistoryEntry | null {
   if (!payload || typeof payload !== 'object') {
     return null
@@ -81,7 +54,7 @@ function normalizeCheckinHistoryEntry(payload: unknown): CheckinHistoryEntry | n
     spaceId,
     spaceName: readString(candidate.space_name),
     spaceAddress: readString(candidate.space_address),
-    usesPower: readBoolean(candidate.uses_power),
+    usesPower: readStrictBoolean(candidate.uses_power),
     startedAt,
     endedAt,
     durationMinutes,
@@ -104,6 +77,10 @@ export async function fetchCheckinHistory(limit = 5): Promise<CheckinHistoryEntr
 }
 
 export const formatCheckinError = formatApiError
+
+type CheckinHistoryApiResponse = {
+  results?: unknown[]
+}
 
 type ActiveCheckinUsersApiResponse = {
   results?: unknown[]

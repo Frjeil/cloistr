@@ -1,6 +1,5 @@
-import { Alert, Button, Center, Loader, Stack } from '@mantine/core'
+import { Center, Loader } from '@mantine/core'
 import { lazy, type ReactElement, Suspense } from 'react'
-import { useTranslation } from 'react-i18next'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import Layout from './components/layout/Layout'
 import { useAuth } from './context/AuthContext'
@@ -59,60 +58,57 @@ export default function App() {
       <div className="page-enter">
         <Suspense fallback={<RouteFallback />}>
           <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/leaderboard" element={<LeaderboardPage />} />
-          <Route path="/contacts" element={<ContactsPage />} />
-          <Route
-            path="/login"
-            element={
-              <PublicOnlyRoute>
-                <LoginPage />
-              </PublicOnlyRoute>
-            }
-          />
-          <Route
-            path="/register"
-            element={
-              <PublicOnlyRoute>
-                <RegisterPage />
-              </PublicOnlyRoute>
-            }
-          />
-          <Route
-            path="/password-reset"
-            element={
-              <PublicOnlyRoute>
-                <PasswordResetPage />
-              </PublicOnlyRoute>
-            }
-          />
-          <Route
-            path="/password-reset-confirm/:uid/:token"
-            element={<PasswordResetConfirmPage />}
-          />
-          <Route
-            path="/password-change"
-            element={
-              <ProtectedRoute>
-                <PasswordChangePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/email-verified" element={<EmailVerifiedPage />} />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <ProfilePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="*"
-            element={<NotFoundPage />}
-          />
-        </Routes>
-      </Suspense>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/leaderboard" element={<LeaderboardPage />} />
+            <Route path="/contacts" element={<ContactsPage />} />
+            <Route
+              path="/login"
+              element={
+                <PublicOnlyRoute>
+                  <LoginPage />
+                </PublicOnlyRoute>
+              }
+            />
+            <Route
+              path="/register"
+              element={
+                <PublicOnlyRoute>
+                  <RegisterPage />
+                </PublicOnlyRoute>
+              }
+            />
+            <Route
+              path="/password-reset"
+              element={
+                <PublicOnlyRoute>
+                  <PasswordResetPage />
+                </PublicOnlyRoute>
+              }
+            />
+            <Route
+              path="/password-reset-confirm/:uid/:token"
+              element={<PasswordResetConfirmPage />}
+            />
+            <Route
+              path="/password-change"
+              element={
+                <ProtectedRoute>
+                  <PasswordChangePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/email-verified" element={<EmailVerifiedPage />} />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <ProfilePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </Suspense>
       </div>
     </Layout>
   )

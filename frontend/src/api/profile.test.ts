@@ -60,6 +60,7 @@ describe('normalizeProfileDetails', () => {
         isMaxLevel: false,
         nextLevel: { slug: 'archivist', name: 'Archivist' },
       },
+      earnedBadges: [],
     })
   })
 
@@ -75,7 +76,7 @@ describe('normalizeProfileDetails', () => {
   it('handles missing level', () => {
     const result = normalizeProfileDetails({ id: '1', username: 'test', level: null })
     expect(result).not.toBeNull()
-    expect(result!.level).toBeNull()
+    expect(result?.level).toBeNull()
   })
 
   it('handles max level without next_level', () => {
@@ -96,8 +97,8 @@ describe('normalizeProfileDetails', () => {
       },
     })
     expect(result).not.toBeNull()
-    expect(result!.level!.isMaxLevel).toBe(true)
-    expect(result!.level!.nextLevel).toBeNull()
+    expect(result?.level?.isMaxLevel).toBe(true)
+    expect(result?.level?.nextLevel).toBeNull()
   })
 
   it('converts string numbers to numbers', () => {
@@ -109,9 +110,9 @@ describe('normalizeProfileDetails', () => {
       activity_streak_days: '3',
     })
     expect(result).not.toBeNull()
-    expect(result!.xp).toBe(100)
-    expect(result!.totalCheckins).toBe(5)
-    expect(result!.activityStreakDays).toBe(3)
+    expect(result?.xp).toBe(100)
+    expect(result?.totalCheckins).toBe(5)
+    expect(result?.activityStreakDays).toBe(3)
   })
 
   it('returns null for missing username', () => {
@@ -122,7 +123,12 @@ describe('normalizeProfileDetails', () => {
 describe('updateProfileSettings', () => {
   it('sends snake_case payload', async () => {
     const { apiFetch } = await import('./client')
-    vi.mocked(apiFetch).mockResolvedValue({ id: '1', username: 'test', discord_handle: '@updated', share_presence: false })
+    vi.mocked(apiFetch).mockResolvedValue({
+      id: '1',
+      username: 'test',
+      discord_handle: '@updated',
+      share_presence: false,
+    })
     const result = await updateProfileSettings({
       discord_handle: '@updated',
       share_presence: false,
@@ -142,7 +148,11 @@ describe('updateProfileSettings', () => {
 describe('uploadProfileAvatar', () => {
   it('sends FormData with avatar file', async () => {
     const { apiFetch } = await import('./client')
-    vi.mocked(apiFetch).mockResolvedValue({ id: '1', username: 'test', avatar_url: 'data:image/png;base64,xxx' })
+    vi.mocked(apiFetch).mockResolvedValue({
+      id: '1',
+      username: 'test',
+      avatar_url: 'data:image/png;base64,xxx',
+    })
     const file = new File(['fake-png'], 'avatar.png', { type: 'image/png' })
     const result = await uploadProfileAvatar(file)
     expect(vi.mocked(apiFetch)).toHaveBeenCalledWith(

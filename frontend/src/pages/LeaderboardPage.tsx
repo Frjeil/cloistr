@@ -128,14 +128,16 @@ export default function LeaderboardPage() {
             <Text fw={600}>{entry.rank}</Text>
           </Group>
         </Table.Td>
-        <Table.Td>
+        <Table.Td style={{ minWidth: 0, overflow: 'hidden' }}>
           <Group wrap="nowrap" gap="sm" align="flex-start">
             <Avatar radius="xl" size={44} src={entry.avatarUrl || undefined} alt={displayName}>
               {(displayName ?? '?').slice(0, 1).toUpperCase()}
             </Avatar>
-            <Stack gap={4} style={{ flex: 1 }}>
-              <Group gap="xs" align="center" wrap="nowrap">
-                <Text fw={600}>{displayName}</Text>
+            <Stack gap={4} style={{ minWidth: 0, overflow: 'hidden' }}>
+              <Group gap="xs" align="center" wrap="nowrap" style={{ minWidth: 0 }}>
+                <Text fw={600} truncate="end" style={{ minWidth: 0 }}>
+                  {displayName}
+                </Text>
                 {renderDiscordBadge(entry)}
               </Group>
               {renderLevelBadge(entry)}
@@ -187,28 +189,30 @@ export default function LeaderboardPage() {
               return (
                 <Paper withBorder radius="md" key={section.key} p="sm" style={{ height: '100%' }}>
                   <Title order={2} size="h4" mb="sm">
-                      {section.title}
-                    </Title>
-                    <Table verticalSpacing="sm" striped highlightOnHover>
-                      <Table.Thead>
+                    {section.title}
+                  </Title>
+                  <Table verticalSpacing="sm" striped highlightOnHover>
+                    <Table.Thead>
+                      <Table.Tr>
+                        <Table.Th>{t('rank')}</Table.Th>
+                        <Table.Th>{t('member')}</Table.Th>
+                        <Table.Th style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>
+                          {section.valueLabel}
+                        </Table.Th>
+                      </Table.Tr>
+                    </Table.Thead>
+                    <Table.Tbody>
+                      {entries.length ? (
+                        entries.map((entry) => renderRow(entry, section))
+                      ) : (
                         <Table.Tr>
-                          <Table.Th>{t('rank')}</Table.Th>
-                          <Table.Th>{t('member')}</Table.Th>
-                          <Table.Th style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>{section.valueLabel}</Table.Th>
+                          <Table.Td colSpan={3}>
+                            <Text c="dimmed">{t('noParticipants')}</Text>
+                          </Table.Td>
                         </Table.Tr>
-                      </Table.Thead>
-                      <Table.Tbody>
-                        {entries.length ? (
-                          entries.map((entry) => renderRow(entry, section))
-                        ) : (
-                          <Table.Tr>
-                            <Table.Td colSpan={3}>
-                              <Text c="dimmed">{t('noParticipants')}</Text>
-                            </Table.Td>
-                          </Table.Tr>
-                        )}
-                      </Table.Tbody>
-                    </Table>
+                      )}
+                    </Table.Tbody>
+                  </Table>
                 </Paper>
               )
             })}

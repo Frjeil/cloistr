@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { readBoolean, readIdentifier, readNumber, readStrictBoolean, readString } from './normalizers'
+import {
+  readBoolean,
+  readIdentifier,
+  readNumber,
+  readStrictBoolean,
+  readString,
+} from './normalizers'
 
 describe('readString', () => {
   it('returns trimmed string for valid input', () => {

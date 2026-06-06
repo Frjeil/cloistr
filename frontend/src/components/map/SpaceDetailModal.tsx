@@ -1,8 +1,9 @@
-import { IconBrandDiscord, IconExternalLink } from '@tabler/icons-react'
-import { Avatar, Badge, Button, Group, Modal, Stack, Text, Title } from '@mantine/core'
+import { ActionIcon, Avatar, Badge, Button, Group, Modal, Stack, Text, Title } from '@mantine/core'
+import { IconBrandDiscord, IconExternalLink, IconHeart, IconHeartFilled } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
+import { useFavoritesQuery, useToggleFavoriteMutation } from '../../hooks/useFavoritesQuery'
 import type { ActiveCheckinUser } from '../../types/checkins'
-import type { SpaceSummary } from '../../types/spaces'
+import { AVAILABILITY_COLORS, type SpaceSummary } from '../../types/spaces'
 
 type Props = {
   space: SpaceSummary | null
@@ -18,41 +19,95 @@ type Props = {
 }
 
 export function SpaceDetailModal({
-  space, opened, onClose, isAuthenticated, isActiveCheckin,
-  hasActiveCheckinElsewhere, onStartCheckin, onEndCheckin, activeCheckinId,
+  space,
+  opened,
+  onClose,
+  isAuthenticated,
+  isActiveCheckin,
+  hasActiveCheckinElsewhere,
+  onStartCheckin,
+  onEndCheckin,
+  activeCheckinId,
   activeCheckinUsers,
 }: Props) {
   const { t } = useTranslation('spaces')
+  const { data: favorites = [] } = useFavoritesQuery()
+  const toggleFavorite = useToggleFavoriteMutation()
 
   if (!space) return null
 
   const kindLabel = space.kind ? t(`kindOptions.${space.kind}`) : t('kindOptions.other')
-  const availLabel = space.availability ? t(`availability.${space.availability}`) : t('availability.unknown')
-  const availColor: Record<string, string> = { free: 'green', moderate: 'yellow', busy: 'red' }
+  const availLabel = space.availability
+    ? t(`availability.${space.availability}`)
+    : t('availability.unknown')
   const mapsUrl = space.address
     ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(space.address)}`
     : null
+  const isFavorite = favorites.some((f) => f.id === space.id)
 
   return (
-    <Modal opened={opened} onClose={onClose} size="lg" yOffset={80}>
+    <Modal opened={opened} onClose={onClose} size="lg">
       <Stack gap="md">
-        <div>
-          <Title order={3}>{space.name}</Title>
-          {space.address && <Text c="dimmed" size="sm">{space.address}</Text>}
-        </div>
-
-        <Group gap="xs">
-          <Badge variant="light" color="blue">{kindLabel}</Badge>
-          <Badge variant="light" color={availColor[space.availability ?? ''] ?? 'gray'}>{availLabel}</Badge>
-          {space.capacity ? <Badge variant="outline">{t('capacityBadge', { value: space.capacity })}</Badge> : null}
-          {space.powerCapacity ? <Badge variant="outline">{t('powerSeatsBadge', { value: space.powerCapacity })}</Badge> : null}
+        <Group justify="space-between" align="flex-start" wrap="nowrap">
+          <div style={{ flex: 1 }}>
+            <Title order={3}>{space.name}</Title>
+            {space.address && (
+              <Text c="dimmed" size="sm">
+                {space.address}
+              </Text>
+            )}
+          </div>
+          <ActionIcon
+            variant={isFavorite ? 'filled' : 'light'}
+            color={isFavorite ? 'red' : 'gray'}
+            size="lg"
+            onClick={() => toggleFavorite.mutate({ spaceId: space.id, isFavorite })}
+            loading={toggleFavorite.isPending}
+            aria-label={isFavorite ? t('removeFavorite') : t('addFavorite')}
+          >
+            {isFavorite ? <IconHeartFilled size={18} /> : <IconHeart size={18} />}
+          </ActionIcon>
         </Group>
 
         <Group gap="xs">
-          {space.wifi ? <Badge size="sm" variant="light">{t('amenities.wifi')}</Badge> : null}
-          {space.power ? <Badge size="sm" variant="light">{t('amenities.power')}</Badge> : null}
-          {space.quiet ? <Badge size="sm" variant="light">{t('amenities.quiet')}</Badge> : null}
-          {space.airConditioning ? <Badge size="sm" variant="light">{t('amenities.airConditioning')}</Badge> : null}
+          <Badge variant="light" color="blue">
+            {kindLabel}
+          </Badge>
+          <Badge
+            variant="light"
+            color={AVAILABILITY_COLORS[space.availability ?? 'free'] ?? 'gray'}
+          >
+            {availLabel}
+          </Badge>
+          {space.capacity ? (
+            <Badge variant="outline">{t('capacityBadge', { value: space.capacity })}</Badge>
+          ) : null}
+          {space.powerCapacity ? (
+            <Badge variant="outline">{t('powerSeatsBadge', { value: space.powerCapacity })}</Badge>
+          ) : null}
+        </Group>
+
+        <Group gap="xs">
+          {space.wifi ? (
+            <Badge size="sm" variant="light">
+              {t('amenities.wifi')}
+            </Badge>
+          ) : null}
+          {space.power ? (
+            <Badge size="sm" variant="light">
+              {t('amenities.power')}
+            </Badge>
+          ) : null}
+          {space.quiet ? (
+            <Badge size="sm" variant="light">
+              {t('amenities.quiet')}
+            </Badge>
+          ) : null}
+          {space.airConditioning ? (
+            <Badge size="sm" variant="light">
+              {t('amenities.airConditioning')}
+            </Badge>
+          ) : null}
         </Group>
 
         {mapsUrl && (
@@ -71,7 +126,9 @@ export function SpaceDetailModal({
 
         {activeCheckinUsers.length > 0 && (
           <div>
-            <Text fw={600} size="sm" mb="xs">{t('details.activeCheckins')}</Text>
+            <Text fw={600} size="sm" mb="xs">
+              {t('details.activeCheckins')}
+            </Text>
             <Stack gap="xs">
               {activeCheckinUsers.map((u) => (
                 <Group key={u.id} gap="sm" wrap="nowrap">
@@ -79,7 +136,9 @@ export function SpaceDetailModal({
                     {u.username.slice(0, 1).toUpperCase()}
                   </Avatar>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <Text size="sm" fw={500} truncate>{u.username}</Text>
+                    <Text size="sm" fw={500} truncate>
+                      {u.username}
+                    </Text>
                     <Group gap={4}>
                       {u.levelName && (
                         <Badge size="xs" variant="light">
@@ -100,13 +159,21 @@ export function SpaceDetailModal({
         )}
 
         {!isAuthenticated ? (
-          <Button component="a" href="/login" fullWidth variant="light">{t('loginToCheckin')}</Button>
+          <Button component="a" href="/login" fullWidth variant="light">
+            {t('loginToCheckin')}
+          </Button>
         ) : isActiveCheckin ? (
-          <Button fullWidth color="red" onClick={() => activeCheckinId && onEndCheckin(activeCheckinId)}>
+          <Button
+            fullWidth
+            color="red"
+            onClick={() => activeCheckinId && onEndCheckin(activeCheckinId)}
+          >
             {t('endCheckin')}
           </Button>
         ) : hasActiveCheckinElsewhere ? (
-          <Button fullWidth disabled variant="light">{t('activeElsewhere')}</Button>
+          <Button fullWidth disabled variant="light">
+            {t('activeElsewhere')}
+          </Button>
         ) : (
           <Button fullWidth onClick={() => onStartCheckin(space.id)}>
             {t('startCheckin')}

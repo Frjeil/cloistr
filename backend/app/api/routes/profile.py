@@ -1,10 +1,17 @@
 from fastapi import APIRouter, File, Request, UploadFile
 
+from app.core.badges import BADGE_DEFINITIONS
 from app.repositories.account import delete_avatar as delete_avatar_repository
 from app.repositories.account import get_profile_details
+from app.repositories.account import get_profile_badges
+from app.repositories.account import get_profile_stats
+from app.repositories.account import add_favorite as add_favorite_repository
+from app.repositories.account import remove_favorite as remove_favorite_repository
+from app.repositories.account import get_favorites as get_favorites_repository
 from app.repositories.account import set_avatar as set_avatar_repository
 from app.repositories.account import update_profile as update_profile_repository
 from app.schemas.profile import ProfileDetails, ProfileUpdatePayload
+from app.schemas.profile import BadgeListResponse, PersonalStatsResponse, FavoriteSpace
 
 router = APIRouter()
 
@@ -27,4 +34,31 @@ async def upload_avatar(request: Request, avatar: UploadFile = File(..., alias="
 @router.delete("/avatar/")
 async def delete_avatar(request: Request) -> dict[str, bool]:
     await delete_avatar_repository(request)
+    return {"ok": True}
+
+
+@router.get("/badges/", response_model=BadgeListResponse)
+async def get_badges(request: Request) -> BadgeListResponse:
+    return await get_profile_badges(request)
+
+
+@router.get("/stats/", response_model=PersonalStatsResponse)
+async def get_stats(request: Request) -> PersonalStatsResponse:
+    return await get_profile_stats(request)
+
+
+@router.get("/favorites/", response_model=list[FavoriteSpace])
+async def get_favorites(request: Request) -> list[FavoriteSpace]:
+    return await get_favorites_repository(request)
+
+
+@router.post("/favorites/{space_id}/")
+async def add_favorite(request: Request, space_id: str) -> dict[str, bool]:
+    await add_favorite_repository(request, space_id)
+    return {"ok": True}
+
+
+@router.delete("/favorites/{space_id}/")
+async def remove_favorite(request: Request, space_id: str) -> dict[str, bool]:
+    await remove_favorite_repository(request, space_id)
     return {"ok": True}

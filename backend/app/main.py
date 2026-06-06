@@ -7,14 +7,17 @@ from app.api.router import api_router
 from app.core.config import get_settings
 from app.core.database import close_mongodb, connect_mongodb
 from app.core.rate_limit import RateLimitMiddleware
+from app.core.scheduler import start_scheduler, stop_scheduler
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     await connect_mongodb()
+    start_scheduler()
     try:
         yield
     finally:
+        stop_scheduler()
         await close_mongodb()
 
 

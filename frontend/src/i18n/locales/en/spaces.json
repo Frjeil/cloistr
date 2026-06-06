@@ -43,6 +43,8 @@
   "refreshHint": "Results refresh automatically while you filter",
   "errorTitle": "Unable to load spaces",
   "error": "There was a problem loading spaces. Please try again shortly.",
+  "fetchErrorTitle": "Failed to load map data",
+  "fetchError": "The spaces could not be loaded. Please check your connection.",
   "emptyTitle": "No spaces match the current filters",
   "emptyDescription": "Try widening the search or clearing one of the active filters.",
   "addressMissing": "Address not available",
@@ -61,6 +63,8 @@
   "endSuccess": "Check-in ended successfully.",
   "checkinErrorTitle": "Check-in action failed",
   "checkinError": "Unable to complete the check-in action. Please try again.",
+  "addFavorite": "Add to favorites",
+  "removeFavorite": "Remove from favorites",
   "details": {
     "open": "Open details",
     "title": "Space details",

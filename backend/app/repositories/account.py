@@ -42,8 +42,18 @@ from app.schemas.auth import (
     RegisterPayload,
 )
 from app.schemas.checkin import ActiveCheckinUser, CheckinHistoryEntry, EndCheckinPayload, StartCheckinPayload
-from app.schemas.profile import ProfileDetails, ProfileUpdatePayload
+from app.schemas.profile import (
+    BadgeInfo,
+    BadgeListResponse,
+    FavoriteSpace,
+    FavoriteSpaceRef,
+    PersonalStatsResponse,
+    ProfileDetails,
+    ProfileUpdatePayload,
+)
 from app.schemas.session import ActiveCheckin, SessionUser
+from app.core.checkin_constants import MAX_CHECKIN_DURATION_MINUTES, XP_PER_CHECKIN_BASE, XP_PER_MINUTE
+from app.core.badges import compute_badges
 
 
 @dataclass(slots=True)
@@ -92,6 +102,19 @@ def _memory_profile_document() -> SimpleNamespace:
         avatar_url=_MEMORY_PROFILE.avatar_url,
         share_presence=_MEMORY_PROFILE.share_presence,
         discord_handle=_MEMORY_PROFILE.discord_handle,
+        earned_badges=_MEMORY_PROFILE.earned_badges,
+        total_hours_studied=0.0,
+        longest_session=0,
+        favorite_space_id=None,
+        favorite_space_name=None,
+        most_active_day=0,
+        avg_checkin_duration=0,
+        favorite_time_slot="morning",
+        total_spaces_visited=0,
+        power_checkins=0,
+        has_early_bird=False,
+        has_night_owl=False,
+        has_social_checkins=False,
     )
 
 
@@ -125,6 +148,115 @@ def _ensure_utc_datetime(value: datetime) -> datetime:
 def get_memory_profile_details() -> ProfileDetails:
     doc = _memory_profile_document()
     return document_to_profile_details(doc)
+
+
+async def get_profile_badges(request: Request) -> BadgeListResponse:
+    from app.core.badges import BADGE_DEFINITIONS
+
+    account_key = await _session_account_key(request)
+
+    if mongodb_database.mongodb_database is None:
+        return BadgeListResponse(
+            earned=[],
+            all=[BadgeInfo(slug=b.slug, name=b.name, description=b.description, icon=b.icon) for b in BADGE_DEFINITIONS.values()],
+        )
+
+    document = await _profile_document_by_account_key(account_key)
+    if document is None:
+        raise HTTPException(status_code=404, detail="Profile not found")
+
+    return BadgeListResponse(
+        earned=document.earned_badges,
+        all=[BadgeInfo(slug=b.slug, name=b.name, description=b.description, icon=b.icon) for b in BADGE_DEFINITIONS.values()],
+    )
+
+
+async def get_profile_stats(request: Request) -> PersonalStatsResponse:
+    account_key = await _session_account_key(request)
+
+    if mongodb_database.mongodb_database is None:
+        return PersonalStatsResponse()
+
+    document = await _profile_document_by_account_key(account_key)
+    if document is None:
+        raise HTTPException(status_code=404, detail="Profile not found")
+
+    history_docs = await CheckinHistoryDocument.find(
+        CheckinHistoryDocument.account_key == account_key
+    ).to_list()
+
+    computed = _compute_stats_from_history(history_docs)
+
+    total_hours = round(sum(d.duration_minutes or 0 for d in history_docs) / 60, 1)
+    longest = max((d.duration_minutes or 0 for d in history_docs), default=0)
+
+    return PersonalStatsResponse(
+        total_hours_studied=total_hours,
+        longest_session=longest,
+        favorite_space=FavoriteSpaceRef(
+            id=computed["favorite_space_id"],
+            name=computed["favorite_space_name"],
+        ) if computed["favorite_space_id"] else None,
+        most_active_day=computed["most_active_day"],
+        avg_checkin_duration=computed["avg_checkin_duration"],
+        favorite_time_slot=computed["favorite_time_slot"],
+        total_spaces_visited=computed["total_spaces_visited"],
+    )
+
+
+async def get_favorites(request: Request) -> list[FavoriteSpace]:
+    account_key = await _session_account_key(request)
+
+    if mongodb_database.mongodb_database is None:
+        return []
+
+    document = await _profile_document_by_account_key(account_key)
+    if document is None:
+        raise HTTPException(status_code=404, detail="Profile not found")
+
+    results: list[FavoriteSpace] = []
+    for space_id in document.favorite_spaces:
+        space = await get_space_by_external_id(space_id)
+        if space:
+            results.append(FavoriteSpace(
+                id=space.id,
+                name=space.name,
+                address=space.address,
+                kind=space.kind,
+                latitude=space.latitude,
+                longitude=space.longitude,
+            ))
+    return results
+
+
+async def add_favorite(request: Request, space_id: str) -> None:
+    account_key = await _session_account_key(request)
+
+    if mongodb_database.mongodb_database is None:
+        return
+
+    document = await _profile_document_by_account_key(account_key)
+    if document is None:
+        raise HTTPException(status_code=404, detail="Profile not found")
+
+    if space_id not in document.favorite_spaces:
+        document.favorite_spaces.append(space_id)
+        await document.save()
+
+
+async def remove_favorite(request: Request, space_id: str) -> None:
+    account_key = await _session_account_key(request)
+
+    if mongodb_database.mongodb_database is None:
+        return
+
+    document = await _profile_document_by_account_key(account_key)
+    if document is None:
+        raise HTTPException(status_code=404, detail="Profile not found")
+
+    if space_id in document.favorite_spaces:
+        document.favorite_spaces.remove(space_id)
+        await document.save()
 
 
 async def get_checkin_history(request: Request, limit: int = 5) -> list[CheckinHistoryEntry]:
@@ -765,6 +897,63 @@ async def start_checkin(request: Request, payload: StartCheckinPayload) -> Activ
     )
 
 
+from collections import Counter
+from collections import defaultdict
+
+def _compute_stats_from_history(history_docs: list[CheckinHistoryDocument]) -> dict:
+    if not history_docs:
+        return {
+            "total_spaces_visited": 0,
+            "favorite_space_id": None,
+            "favorite_space_name": None,
+            "most_active_day": 0,
+            "avg_checkin_duration": 0,
+            "favorite_time_slot": "morning",
+        }
+
+    space_counts: Counter[str] = Counter()
+    day_counts: Counter[int] = Counter()
+    duration_sum = 0
+    slot_counts: Counter[str] = Counter()
+
+    for doc in history_docs:
+        if doc.space_external_id:
+            space_counts[doc.space_external_id] += 1
+        day_counts[doc.ended_at.weekday()] += 1
+        duration_sum += doc.duration_minutes or 0
+        hour = doc.started_at.hour
+        if 6 <= hour < 12:
+            slot = "morning"
+        elif 12 <= hour < 18:
+            slot = "afternoon"
+        elif 18 <= hour < 22:
+            slot = "evening"
+        else:
+            slot = "night"
+        slot_counts[slot] += 1
+
+    total_spaces = len(space_counts)
+    favorite_space_id = space_counts.most_common(1)[0][0] if space_counts else None
+    favorite_space_name = None
+    if favorite_space_id:
+        for doc in history_docs:
+            if doc.space_external_id == favorite_space_id and doc.space_name:
+                favorite_space_name = doc.space_name
+                break
+    most_active_day = day_counts.most_common(1)[0][0] if day_counts else 0
+    avg_duration = duration_sum // len(history_docs) if history_docs else 0
+    favorite_slot = slot_counts.most_common(1)[0][0] if slot_counts else "morning"
+
+    return {
+        "total_spaces_visited": total_spaces,
+        "favorite_space_id": favorite_space_id,
+        "favorite_space_name": favorite_space_name,
+        "most_active_day": most_active_day,
+        "avg_checkin_duration": avg_duration,
+        "favorite_time_slot": favorite_slot,
+    }
+
+
 async def end_checkin(request: Request, payload: EndCheckinPayload) -> None:
     account_key = await _session_account_key(request)
     _ = payload
@@ -788,7 +977,8 @@ async def end_checkin(request: Request, payload: EndCheckinPayload) -> None:
         started_at = _MEMORY_ACTIVE_CHECKIN.started_at or now.isoformat()
         started_at_dt = datetime.fromisoformat(started_at)
         duration_minutes = max(int((now - started_at_dt).total_seconds() // 60), 1)
-        xp_gained = 50 + duration_minutes * 2
+        duration_minutes = min(duration_minutes, MAX_CHECKIN_DURATION_MINUTES)
+        xp_gained = XP_PER_CHECKIN_BASE + duration_minutes * XP_PER_MINUTE
         _MEMORY_CHECKIN_HISTORY.insert(
             0,
             _checkin_history_entry_from_active_checkin(
@@ -827,7 +1017,8 @@ async def end_checkin(request: Request, payload: EndCheckinPayload) -> None:
         int((now - _ensure_utc_datetime(active_checkin.started_at)).total_seconds() // 60),
         1,
     )
-    xp_gained = 50 + duration_minutes * 2
+    duration_minutes = min(duration_minutes, MAX_CHECKIN_DURATION_MINUTES)
+    xp_gained = XP_PER_CHECKIN_BASE + duration_minutes * XP_PER_MINUTE
     history_document = CheckinHistoryDocument(
         account_key=account_key,
         space_external_id=active_checkin.space_external_id,
@@ -842,10 +1033,40 @@ async def end_checkin(request: Request, payload: EndCheckinPayload) -> None:
     )
     await history_document.insert()
 
+    history_docs = await CheckinHistoryDocument.find(
+        CheckinHistoryDocument.account_key == account_key
+    ).to_list()
+
+    computed = _compute_stats_from_history(history_docs)
+
     document.total_checkins = total_checkins
     document.activity_streak_days = activity_streak_days
     document.last_checkin_date = last_checkin_date
     document.xp += xp_gained
+    document.total_hours_studied = round(document.total_hours_studied + duration_minutes / 60, 1)
+    document.longest_session = max(document.longest_session, duration_minutes)
+    document.total_spaces_visited = computed["total_spaces_visited"]
+    document.favorite_space_id = computed["favorite_space_id"]
+    document.favorite_space_name = computed["favorite_space_name"]
+    document.most_active_day = computed["most_active_day"]
+    document.avg_checkin_duration = computed["avg_checkin_duration"]
+    document.favorite_time_slot = computed["favorite_time_slot"]
+    if active_checkin.uses_power:
+        document.power_checkins = document.power_checkins + 1
+    started_hour = _ensure_utc_datetime(active_checkin.started_at).hour
+    if started_hour < 8:
+        document.has_early_bird = True
+    if started_hour >= 22:
+        document.has_night_owl = True
+    document.earned_badges = compute_badges(
+        total_checkins=document.total_checkins,
+        activity_streak_days=document.activity_streak_days,
+        power_checkins=document.power_checkins,
+        distinct_spaces=document.total_spaces_visited,
+        has_early_bird=document.has_early_bird,
+        has_night_owl=document.has_night_owl,
+        has_social_checkins=document.has_social_checkins,
+    )
     await document.save()
 
     await active_checkin.delete()
