@@ -1,10 +1,17 @@
 from fastapi import APIRouter, Query, Request
 
 from app.repositories.account import end_checkin as end_checkin_repository
-from app.repositories.account import get_active_checkins_by_space as get_active_checkins_by_space_repository
+from app.repositories.account import (
+    get_active_checkins_by_space as get_active_checkins_by_space_repository,
+)
 from app.repositories.account import get_checkin_history as get_checkin_history_repository
 from app.repositories.account import start_checkin as start_checkin_repository
-from app.schemas.checkin import ActiveCheckinUsersResponse, CheckinHistoryResponse, EndCheckinPayload, StartCheckinPayload
+from app.schemas.checkin import (
+    ActiveCheckinUsersResponse,
+    CheckinHistoryResponse,
+    EndCheckinPayload,
+    StartCheckinPayload,
+)
 
 router = APIRouter()
 
@@ -30,4 +37,6 @@ async def get_history(
 
 @router.get("/active-by-space/{space_id}/", response_model=ActiveCheckinUsersResponse)
 async def active_by_space(space_id: str) -> ActiveCheckinUsersResponse:
-    return ActiveCheckinUsersResponse(results=await get_active_checkins_by_space_repository(space_id))
+    return ActiveCheckinUsersResponse(
+        results=await get_active_checkins_by_space_repository(space_id)
+    )

@@ -198,13 +198,51 @@ a {
   margin-right: 8px;
 }
 
+.space-map-btn {
+  width: 29px;
+  height: 29px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  cursor: pointer;
+  background: #fff;
+  color: #222;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+.space-map-btn--top {
+  border-radius: 4px 4px 0 0;
+}
+.space-map-btn--bottom {
+  border-radius: 0 0 4px 4px;
+  border-bottom: 0;
+}
+.space-map-btn[data-hovered] {
+  background: #f4f4f4;
+}
+
+.space-map-filter-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: var(--mantine-color-blue-filled);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  padding: 1px 5px;
+  border-radius: 10px;
+  min-width: 16px;
+  text-align: center;
+}
+
 .maplibregl-popup {
   z-index: 2000;
 }
 
 .maplibregl-popup-content {
   padding: 0;
-  background: transparent !important;
+  background: transparent;
   box-shadow: none;
   border-radius: 8px;
 }

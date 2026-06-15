@@ -1,11 +1,10 @@
-import asyncio
 from datetime import UTC, datetime, timedelta
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
-from app.core.checkin_constants import MAX_CHECKIN_DURATION
 from app.core import database as mongodb_database
+from app.core.checkin_constants import MAX_CHECKIN_DURATION
 from app.models import CheckinDocument, CheckinHistoryDocument
 from app.repositories.account import _ensure_utc_datetime
 
@@ -14,7 +13,9 @@ scheduler = AsyncIOScheduler()
 
 async def _close_single_expired_checkin(active_checkin: CheckinDocument) -> None:
     now = datetime.now(tz=UTC)
-    duration_minutes = int((now - _ensure_utc_datetime(active_checkin.started_at)).total_seconds() // 60)
+    duration_minutes = int(
+        (now - _ensure_utc_datetime(active_checkin.started_at)).total_seconds() // 60
+    )
     duration_minutes = max(min(duration_minutes, MAX_CHECKIN_DURATION.total_seconds() // 60), 1)
     ended_at = _ensure_utc_datetime(active_checkin.started_at) + timedelta(minutes=duration_minutes)
 
@@ -39,9 +40,7 @@ async def close_expired_checkins() -> None:
         return
 
     cutoff = datetime.now(tz=UTC) - MAX_CHECKIN_DURATION
-    stale_checkins = await CheckinDocument.find(
-        CheckinDocument.started_at < cutoff
-    ).to_list()
+    stale_checkins = await CheckinDocument.find(CheckinDocument.started_at < cutoff).to_list()
 
     for checkin in stale_checkins:
         try:

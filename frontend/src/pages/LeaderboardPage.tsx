@@ -1,7 +1,6 @@
 import {
   Alert,
   Avatar,
-  Badge,
   Button,
   Container,
   Group,
@@ -13,11 +12,12 @@ import {
   Text,
   Title,
 } from '@mantine/core'
-import { IconBrandDiscord, IconTrophy } from '@tabler/icons-react'
+import { IconTrophy } from '@tabler/icons-react'
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLeaderboardQuery } from '../hooks/useLeaderboardQuery'
 import type { LeaderboardEntry, LeaderboardSectionKey } from '../types/leaderboard'
+import { DiscordBadge, LevelBadge } from '../utils/leaderboard'
 
 type SectionConfig = {
   key: LeaderboardSectionKey
@@ -72,32 +72,6 @@ export default function LeaderboardPage() {
     ]
   }, [formatInteger, t])
 
-  const renderLevelBadge = (entry: LeaderboardEntry) => {
-    if (!entry.level) {
-      return null
-    }
-
-    return (
-      <Badge size="sm" variant="light">
-        {t(`levels.${entry.level.slug || 'unknown'}`, {
-          defaultValue: entry.level.name || t('levels.unknown'),
-        })}
-      </Badge>
-    )
-  }
-
-  const renderDiscordBadge = (entry: LeaderboardEntry) => {
-    if (!entry.discordHandle) {
-      return null
-    }
-
-    return (
-      <Badge size="xs" color="grape" leftSection={<IconBrandDiscord size={12} />}>
-        {entry.discordHandle}
-      </Badge>
-    )
-  }
-
   const renderLoadingState = () => (
     <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
       {sections.map((section) => (
@@ -138,9 +112,9 @@ export default function LeaderboardPage() {
                 <Text fw={600} truncate="end" style={{ minWidth: 0 }}>
                   {displayName}
                 </Text>
-                {renderDiscordBadge(entry)}
+                <DiscordBadge entry={entry} />
               </Group>
-              {renderLevelBadge(entry)}
+              <LevelBadge entry={entry} />
             </Stack>
           </Group>
         </Table.Td>

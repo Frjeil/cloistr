@@ -37,5 +37,10 @@ backend/.coverage
 *.sw?
 .agents
 .impeccable
+.agent-ready/
+.opencode/
 PRODUCT.md
 DESIGN.md
+openspec/
+agent-ready-report.json
+scripts/agent-readiness-audit/

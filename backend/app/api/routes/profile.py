@@ -1,17 +1,19 @@
 from fastapi import APIRouter, File, Request, UploadFile
 
-from app.core.badges import BADGE_DEFINITIONS
-from app.repositories.account import delete_avatar as delete_avatar_repository
-from app.repositories.account import get_profile_details
-from app.repositories.account import get_profile_badges
-from app.repositories.account import get_profile_stats
 from app.repositories.account import add_favorite as add_favorite_repository
-from app.repositories.account import remove_favorite as remove_favorite_repository
+from app.repositories.account import delete_avatar as delete_avatar_repository
 from app.repositories.account import get_favorites as get_favorites_repository
+from app.repositories.account import get_profile_badges, get_profile_details, get_profile_stats
+from app.repositories.account import remove_favorite as remove_favorite_repository
 from app.repositories.account import set_avatar as set_avatar_repository
 from app.repositories.account import update_profile as update_profile_repository
-from app.schemas.profile import ProfileDetails, ProfileUpdatePayload
-from app.schemas.profile import BadgeListResponse, PersonalStatsResponse, FavoriteSpace
+from app.schemas.profile import (
+    BadgeListResponse,
+    FavoriteSpace,
+    PersonalStatsResponse,
+    ProfileDetails,
+    ProfileUpdatePayload,
+)
 
 router = APIRouter()
 
@@ -27,7 +29,9 @@ async def update_profile(request: Request, payload: ProfileUpdatePayload) -> Pro
 
 
 @router.post("/avatar/", response_model=ProfileDetails)
-async def upload_avatar(request: Request, avatar: UploadFile = File(..., alias="avatar")) -> ProfileDetails:
+async def upload_avatar(
+    request: Request, avatar: UploadFile = File(..., alias="avatar")
+) -> ProfileDetails:
     return await set_avatar_repository(request, avatar)
 
 

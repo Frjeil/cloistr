@@ -135,9 +135,13 @@ export function formatApiError(payload: unknown): string | null {
     return body.non_field_errors.join(' ')
   }
 
-  const messages = Object.values(body)
-    .flatMap((value) => (Array.isArray(value) ? value : [value]))
-    .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+  const messages: string[] = []
+  for (const value of Object.values(body)) {
+    const items = Array.isArray(value) ? value : [value]
+    for (const item of items) {
+      if (typeof item === 'string' && item.trim().length > 0) messages.push(item)
+    }
+  }
 
   return messages[0] ?? null
 }

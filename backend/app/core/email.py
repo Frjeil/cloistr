@@ -91,7 +91,6 @@ def send_password_reset_email(
     token: str,
     display_name: str | None = None,
 ) -> str:
-    settings = get_settings()
     reset_url = _build_reset_url(account_key, token)
     greeting_name = display_name or recipient_email
     subject = "Reset your Cloistr password"
@@ -111,7 +110,6 @@ def send_registration_confirmation_email(
     recipient_email: str,
     display_name: str | None = None,
 ) -> str:
-    settings = get_settings()
     login_url = _build_login_url()
     greeting_name = display_name or recipient_email
     subject = "Welcome to Cloistr"

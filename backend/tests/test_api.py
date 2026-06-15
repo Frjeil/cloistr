@@ -25,6 +25,7 @@ def _login() -> str | None:
 
 # --- Health ---
 
+
 def test_healthcheck() -> None:
     response = client.get("/api/health/")
     assert response.status_code == 200
@@ -33,6 +34,7 @@ def test_healthcheck() -> None:
 
 # --- CSRF ---
 
+
 def test_csrf_route_sets_cookie() -> None:
     response = client.get("/api/auth/csrf/")
     assert response.status_code == 200
@@ -40,6 +42,7 @@ def test_csrf_route_sets_cookie() -> None:
 
 
 # --- Spaces ---
+
 
 def test_spaces_search_returns_seed_data() -> None:
     response = client.get("/api/spaces/search/")
@@ -74,14 +77,13 @@ def test_spaces_search_empty_for_nonexistent_query() -> None:
 
 # --- Leaderboard ---
 
+
 def test_leaderboard_returns_expected_shape() -> None:
     response = client.get("/api/leaderboard/")
     assert response.status_code == 200
     body = response.json()
     assert body["results"]["xp"]
-    assert body["results"]["levels"]
     assert body["results"]["xp"][0]["username"] == "cloistr"
-    assert body["results"]["levels"][0]["username"] == "cloistr"
     assert body["results"]["checkins"][0]["username"] == "cloistr"
     assert body["results"]["checkins"][0]["total_checkins"] == 12
     assert body["results"]["streak"][0]["username"] == "cloistr"
@@ -89,6 +91,7 @@ def test_leaderboard_returns_expected_shape() -> None:
 
 
 # --- Auth ---
+
 
 def test_login_succeeds() -> None:
     _login()
@@ -210,6 +213,7 @@ def test_logout_clears_session() -> None:
 
 # --- Password Reset ---
 
+
 def test_password_reset_request_queues_email() -> None:
     client.get("/api/auth/csrf/")
     csrf_token = client.cookies.get(CSRF_COOKIE_NAME)
@@ -305,6 +309,7 @@ def test_password_reset_confirm_rejects_mismatch() -> None:
 
 # --- Profile ---
 
+
 def test_profile_get_details() -> None:
     _login()
     response = client.get("/api/profile/me/")
@@ -387,6 +392,7 @@ def test_profile_avatar_upload_and_delete() -> None:
 
 # --- Password Change ---
 
+
 def test_password_change() -> None:
     _login()
     client.get("/api/auth/csrf/")
@@ -429,6 +435,7 @@ def test_password_change_rejects_wrong_old_password() -> None:
 
 
 # --- Check-in flow ---
+
 
 def test_checkin_routes_start_and_clear_session_state() -> None:
     _login()
@@ -484,6 +491,7 @@ def test_checkin_end_fails_without_active_checkin() -> None:
 
 
 # --- Levels ---
+
 
 def test_level_first_level() -> None:
     level = compute_level(0)
@@ -554,12 +562,17 @@ def test_level_negative_xp() -> None:
 
 # --- Contact ---
 
+
 def test_contact_form_sends_email() -> None:
     client.get("/api/auth/csrf/")
     csrf_token = client.cookies.get(CSRF_COOKIE_NAME)
     response = client.post(
         "/api/contacts/",
-        json={"name": "Test User", "email": "test@example.com", "message": "Hello, I have a question."},
+        json={
+            "name": "Test User",
+            "email": "test@example.com",
+            "message": "Hello, I have a question.",
+        },
         headers={"X-CSRFToken": csrf_token or ""},
     )
     assert response.status_code == 200

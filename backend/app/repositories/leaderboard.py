@@ -16,7 +16,6 @@ from app.schemas.profile import ProfileDetails, ProfileLevel
 LEADERBOARD_LIMIT = 10
 
 
-
 def _profile_level_from_details(level: ProfileLevel | None) -> LeaderboardLevel | None:
     if level is None:
         return None

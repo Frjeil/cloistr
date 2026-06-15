@@ -36,7 +36,9 @@ export default function HomePage() {
   const [power, setPower] = useState(false)
   const [quiet, setQuiet] = useState(false)
   const [airConditioning, setAirConditioning] = useState(false)
-  const [flyToTarget, setFlyToTarget] = useState<{ longitude: number; latitude: number } | null>(null)
+  const [flyToTarget, setFlyToTarget] = useState<{ longitude: number; latitude: number } | null>(
+    null,
+  )
   const [searchOpened, { open: openSearch, close: closeSearch }] = useDisclosure(false)
   const [filtersOpened, filtersCtrl] = useDisclosure(false)
 
@@ -93,7 +95,8 @@ export default function HomePage() {
   const confirmSearch = (value: string) => {
     setSearch(value)
     const match = allSpaces?.find(
-      (s) => s.name.toLowerCase() === value.toLowerCase() && s.latitude !== null && s.longitude !== null,
+      (s) =>
+        s.name.toLowerCase() === value.toLowerCase() && s.latitude !== null && s.longitude !== null,
     )
     if (match && match.latitude !== null && match.longitude !== null) {
       setFlyToTarget({ longitude: match.longitude, latitude: match.latitude })

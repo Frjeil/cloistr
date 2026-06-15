@@ -26,6 +26,7 @@ from app.core.sample_data import (
 
 # --- auth_security ---
 
+
 class TestAuthSecurity:
     def test_verify_password_correct(self) -> None:
         hashed = hash_password("correct-password")
@@ -58,6 +59,7 @@ class TestAuthSecurity:
 
 
 # --- levels ---
+
 
 class TestLevels:
     def test_levels_empty_thresholds(self, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -116,6 +118,7 @@ class TestLevels:
 
 # --- rate_limit ---
 
+
 class TestRateLimiter:
     def test_allows_within_limit(self) -> None:
         limiter = InMemoryRateLimiter(max_requests=3, window_seconds=60)
@@ -156,6 +159,7 @@ class TestRateLimiter:
     def test_prunes_expired_timestamps(self) -> None:
         limiter = InMemoryRateLimiter(max_requests=2, window_seconds=60)
         import time
+
         old_time = time.monotonic() - 120
         key = "test-key"
         limiter._clients[key] = [old_time, old_time]
@@ -172,6 +176,7 @@ class TestRateLimiter:
             await middleware({"type": "websocket"}, None, None)
 
         import anyio
+
         anyio.run(run)
 
     def test_rate_limit_middleware_passthrough_non_limited(self) -> None:
@@ -199,6 +204,7 @@ class TestRateLimiter:
             await middleware(scope, receive, send)
 
         import anyio
+
         anyio.run(run)
 
     def test_rate_limit_middleware_blocks_over_limit(self) -> None:
@@ -223,6 +229,7 @@ class TestRateLimiter:
         }
 
         from app.core.rate_limit import login_limiter as ll
+
         ll.reset("127.0.0.1")
         # Fill the limiter
         for _ in range(20):
@@ -233,11 +240,13 @@ class TestRateLimiter:
                 await middleware(scope, receive, send)
 
         import anyio
+
         anyio.run(run)
         ll.reset("127.0.0.1")
 
 
 # --- sample_data ---
+
 
 class TestSampleData:
     def test_get_sample_spaces(self) -> None:
@@ -271,6 +280,7 @@ class TestSampleData:
 
 
 # --- email ---
+
 
 class TestEmail:
     def setup_method(self) -> None:

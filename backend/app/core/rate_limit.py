@@ -42,7 +42,12 @@ RATE_LIMITED_PATHS: dict[str, InMemoryRateLimiter] = {
     "/api/contacts": contact_limiter,
 }
 
-ALL_LIMITERS: list[InMemoryRateLimiter] = [login_limiter, register_limiter, password_reset_limiter, contact_limiter]
+ALL_LIMITERS: list[InMemoryRateLimiter] = [
+    login_limiter,
+    register_limiter,
+    password_reset_limiter,
+    contact_limiter,
+]
 
 
 def reset_all_limiters() -> None:

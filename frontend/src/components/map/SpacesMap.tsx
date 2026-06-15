@@ -48,10 +48,15 @@ type Props = {
 }
 
 export function SpacesMap({
-  spaces, activeCheckin, isAuthenticated = false,
+  spaces,
+  activeCheckin,
+  isAuthenticated = false,
   activeFilterCount = 0,
   flyToTarget = null,
-  onSearchClick, onFilterClick, onStartCheckin, onEndCheckin,
+  onSearchClick,
+  onFilterClick,
+  onStartCheckin,
+  onEndCheckin,
 }: Props) {
   const { t } = useTranslation('spaces')
   const isLight = useMapTheme()
@@ -349,16 +354,16 @@ export function SpacesMap({
     if (point) {
       highlightedMarkerRef.current = point.id
       renderClustersRef.current()
-      setTimeout(() => {
+      const highlightTimer = setTimeout(() => {
         highlightedMarkerRef.current = null
         renderClustersRef.current()
       }, 4000)
-      // open popup after flyTo completes
       map.once('moveend', () => {
         openPopupCb(point)
       })
+      return () => clearTimeout(highlightTimer)
     }
-  }, [flyToTarget, mapLoaded])
+  }, [flyToTarget, mapLoaded, openPopupCb, points])
 
   const openDetail = useCallback((space: SpaceSummary) => {
     setDetailSpace(space)
@@ -438,24 +443,7 @@ export function SpacesMap({
                 bottom
               />
               {activeFilterCount > 0 && (
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: -2,
-                    right: -2,
-                    background: 'var(--mantine-color-blue-filled)',
-                    color: '#fff',
-                    fontSize: 10,
-                    fontWeight: 700,
-                    lineHeight: 1.2,
-                    padding: '1px 5px',
-                    borderRadius: 10,
-                    minWidth: 16,
-                    textAlign: 'center',
-                  }}
-                >
-                  {activeFilterCount}
-                </span>
+                <span className="space-map-filter-badge">{activeFilterCount}</span>
               )}
             </div>
           )}

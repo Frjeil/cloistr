@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from base64 import b64encode
+from collections import Counter
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from types import SimpleNamespace
@@ -22,6 +23,12 @@ from app.core.auth_security import (
     utc_now,
     verify_password,
 )
+from app.core.badges import compute_badges
+from app.core.checkin_constants import (
+    MAX_CHECKIN_DURATION_MINUTES,
+    XP_PER_CHECKIN_BASE,
+    XP_PER_MINUTE,
+)
 from app.core.email import send_password_reset_email
 from app.core.profile_helpers import document_to_profile_details
 from app.core.rate_limit import reset_all_limiters
@@ -41,7 +48,12 @@ from app.schemas.auth import (
     PasswordResetPayload,
     RegisterPayload,
 )
-from app.schemas.checkin import ActiveCheckinUser, CheckinHistoryEntry, EndCheckinPayload, StartCheckinPayload
+from app.schemas.checkin import (
+    ActiveCheckinUser,
+    CheckinHistoryEntry,
+    EndCheckinPayload,
+    StartCheckinPayload,
+)
 from app.schemas.profile import (
     BadgeInfo,
     BadgeListResponse,
@@ -52,8 +64,6 @@ from app.schemas.profile import (
     ProfileUpdatePayload,
 )
 from app.schemas.session import ActiveCheckin, SessionUser
-from app.core.checkin_constants import MAX_CHECKIN_DURATION_MINUTES, XP_PER_CHECKIN_BASE, XP_PER_MINUTE
-from app.core.badges import compute_badges
 
 
 @dataclass(slots=True)
@@ -158,7 +168,10 @@ async def get_profile_badges(request: Request) -> BadgeListResponse:
     if mongodb_database.mongodb_database is None:
         return BadgeListResponse(
             earned=[],
-            all=[BadgeInfo(slug=b.slug, name=b.name, description=b.description, icon=b.icon) for b in BADGE_DEFINITIONS.values()],
+            all=[
+                BadgeInfo(slug=b.slug, name=b.name, description=b.description, icon=b.icon)
+                for b in BADGE_DEFINITIONS.values()
+            ],
         )
 
     document = await _profile_document_by_account_key(account_key)
@@ -167,7 +180,10 @@ async def get_profile_badges(request: Request) -> BadgeListResponse:
 
     return BadgeListResponse(
         earned=document.earned_badges,
-        all=[BadgeInfo(slug=b.slug, name=b.name, description=b.description, icon=b.icon) for b in BADGE_DEFINITIONS.values()],
+        all=[
+            BadgeInfo(slug=b.slug, name=b.name, description=b.description, icon=b.icon)
+            for b in BADGE_DEFINITIONS.values()
+        ],
     )
 
 
@@ -196,7 +212,9 @@ async def get_profile_stats(request: Request) -> PersonalStatsResponse:
         favorite_space=FavoriteSpaceRef(
             id=computed["favorite_space_id"],
             name=computed["favorite_space_name"],
-        ) if computed["favorite_space_id"] else None,
+        )
+        if computed["favorite_space_id"]
+        else None,
         most_active_day=computed["most_active_day"],
         avg_checkin_duration=computed["avg_checkin_duration"],
         favorite_time_slot=computed["favorite_time_slot"],
@@ -218,14 +236,16 @@ async def get_favorites(request: Request) -> list[FavoriteSpace]:
     for space_id in document.favorite_spaces:
         space = await get_space_by_external_id(space_id)
         if space:
-            results.append(FavoriteSpace(
-                id=space.id,
-                name=space.name,
-                address=space.address,
-                kind=space.kind,
-                latitude=space.latitude,
-                longitude=space.longitude,
-            ))
+            results.append(
+                FavoriteSpace(
+                    id=space.id,
+                    name=space.name,
+                    address=space.address,
+                    kind=space.kind,
+                    latitude=space.latitude,
+                    longitude=space.longitude,
+                )
+            )
     return results
 
 
@@ -290,24 +310,21 @@ async def get_checkin_history(request: Request, limit: int = 5) -> list[CheckinH
 
 async def get_active_checkins_by_space(space_id: str) -> list[ActiveCheckinUser]:
     if mongodb_database.mongodb_database is None:
-        if (
-            _MEMORY_ACTIVE_CHECKIN is not None
-            and _MEMORY_ACTIVE_CHECKIN.space_id == space_id
-        ):
+        if _MEMORY_ACTIVE_CHECKIN is not None and _MEMORY_ACTIVE_CHECKIN.space_id == space_id:
             profile = get_memory_profile_details()
-            return [ActiveCheckinUser(
-                id=profile.id,
-                username=profile.username,
-                avatar_url=profile.avatar_url if profile.share_presence else None,
-                discord_handle=profile.discord_handle,
-                level_slug=profile.level.slug if profile.level else None,
-                level_name=profile.level.name if profile.level else None,
-            )]
+            return [
+                ActiveCheckinUser(
+                    id=profile.id,
+                    username=profile.username,
+                    avatar_url=profile.avatar_url if profile.share_presence else None,
+                    discord_handle=profile.discord_handle,
+                    level_slug=profile.level.slug if profile.level else None,
+                    level_name=profile.level.name if profile.level else None,
+                )
+            ]
         return []
 
-    documents = await CheckinDocument.find(
-        CheckinDocument.space_external_id == space_id
-    ).to_list()
+    documents = await CheckinDocument.find(CheckinDocument.space_external_id == space_id).to_list()
 
     results: list[ActiveCheckinUser] = []
     for doc in documents:
@@ -315,14 +332,16 @@ async def get_active_checkins_by_space(space_id: str) -> list[ActiveCheckinUser]
         if profile is None:
             continue
         details = document_to_profile_details(profile)
-        results.append(ActiveCheckinUser(
-            id=profile.account_key,
-            username=profile.username,
-            avatar_url=profile.avatar_url if profile.share_presence else None,
-            discord_handle=profile.discord_handle,
-            level_slug=details.level.slug if details.level else None,
-            level_name=details.level.name if details.level else None,
-        ))
+        results.append(
+            ActiveCheckinUser(
+                id=profile.account_key,
+                username=profile.username,
+                avatar_url=profile.avatar_url if profile.share_presence else None,
+                discord_handle=profile.discord_handle,
+                level_slug=details.level.slug if details.level else None,
+                level_name=details.level.name if details.level else None,
+            )
+        )
     return results
 
 
@@ -747,7 +766,9 @@ async def update_profile(request: Request, payload: ProfileUpdatePayload) -> Pro
             raise HTTPException(status_code=404, detail="Profile not found")
 
         if wants_identity_change:
-            if not payload.current_password or not verify_password(payload.current_password, _MEMORY_PASSWORD_HASH):
+            if not payload.current_password or not verify_password(
+                payload.current_password, _MEMORY_PASSWORD_HASH
+            ):
                 raise HTTPException(status_code=400, detail="Current password is incorrect")
             new_username = payload.username.strip() or _MEMORY_PROFILE.username
             new_email = payload.email.strip() or _MEMORY_PROFILE.email
@@ -775,7 +796,9 @@ async def update_profile(request: Request, payload: ProfileUpdatePayload) -> Pro
         raise HTTPException(status_code=404, detail="Profile not found")
 
     if wants_identity_change:
-        if not payload.current_password or not verify_password(payload.current_password, document.password_hash):
+        if not payload.current_password or not verify_password(
+            payload.current_password, document.password_hash
+        ):
             raise HTTPException(status_code=400, detail="Current password is incorrect")
         new_username = payload.username.strip()
         new_email = payload.email.strip()
@@ -896,9 +919,6 @@ async def start_checkin(request: Request, payload: StartCheckinPayload) -> Activ
         started_at=document.started_at.isoformat(),
     )
 
-
-from collections import Counter
-from collections import defaultdict
 
 def _compute_stats_from_history(history_docs: list[CheckinHistoryDocument]) -> dict:
     if not history_docs:
