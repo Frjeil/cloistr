@@ -26,6 +26,65 @@ type SectionConfig = {
   renderValue: (entry: LeaderboardEntry) => ReactNode
 }
 
+function LeaderboardRow({ entry, section }: { entry: LeaderboardEntry; section: SectionConfig }) {
+  const displayName = entry.username
+  const valueContent = section.renderValue(entry)
+
+  return (
+    <Table.Tr key={`${section.key}-${entry.username}`}>
+      <Table.Td w={72}>
+        <Group gap="xs" wrap="nowrap">
+          <IconTrophy
+            size={16}
+            color={entry.rank <= 3 ? 'var(--mantine-color-yellow-6)' : 'currentColor'}
+          />
+          <Text fw={600}>{entry.rank}</Text>
+        </Group>
+      </Table.Td>
+      <Table.Td style={{ minWidth: 0, overflow: 'hidden' }}>
+        <Group wrap="nowrap" gap="sm" align="flex-start">
+          <Avatar radius="xl" size={44} src={entry.avatarUrl || undefined} alt={displayName}>
+            {(displayName ?? '?').slice(0, 1).toUpperCase()}
+          </Avatar>
+          <Stack gap={4} style={{ minWidth: 0, overflow: 'hidden' }}>
+            <Group gap="xs" align="center" wrap="nowrap" style={{ minWidth: 0 }}>
+              <Text fw={600} truncate="end" style={{ minWidth: 0 }}>
+                {displayName}
+              </Text>
+              <DiscordBadge entry={entry} />
+            </Group>
+            <LevelBadge entry={entry} />
+          </Stack>
+        </Group>
+      </Table.Td>
+      <Table.Td style={{ textAlign: 'right' }}>
+        {typeof valueContent === 'string' || typeof valueContent === 'number' ? (
+          <Text fw={600}>{valueContent}</Text>
+        ) : (
+          valueContent
+        )}
+      </Table.Td>
+    </Table.Tr>
+  )
+}
+
+function LoadingState({ sections }: { sections: SectionConfig[] }) {
+  return (
+    <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
+      {sections.map((section) => (
+        <Paper withBorder radius="md" key={section.key} p="sm">
+          <Skeleton height={24} mb="md" width="45%" />
+          <Stack gap="sm">
+            <Skeleton height={54} radius="md" />
+            <Skeleton height={54} radius="md" />
+            <Skeleton height={54} radius="md" />
+          </Stack>
+        </Paper>
+      ))}
+    </SimpleGrid>
+  )
+}
+
 export default function LeaderboardPage() {
   const { t, i18n } = useTranslation('leaderboard')
   const { data, error, isError, isFetching, isPending, refetch } = useLeaderboardQuery()
@@ -72,63 +131,6 @@ export default function LeaderboardPage() {
     ]
   }, [formatInteger, t])
 
-  const renderLoadingState = () => (
-    <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
-      {sections.map((section) => (
-        <Paper withBorder radius="md" key={section.key} p="sm">
-          <Skeleton height={24} mb="md" width="45%" />
-          <Stack gap="sm">
-            <Skeleton height={54} radius="md" />
-            <Skeleton height={54} radius="md" />
-            <Skeleton height={54} radius="md" />
-          </Stack>
-        </Paper>
-      ))}
-    </SimpleGrid>
-  )
-
-  const renderRow = (entry: LeaderboardEntry, section: SectionConfig) => {
-    const displayName = entry.username
-    const valueContent = section.renderValue(entry)
-
-    return (
-      <Table.Tr key={`${section.key}-${entry.username}`}>
-        <Table.Td w={72}>
-          <Group gap="xs" wrap="nowrap">
-            <IconTrophy
-              size={16}
-              color={entry.rank <= 3 ? 'var(--mantine-color-yellow-6)' : 'currentColor'}
-            />
-            <Text fw={600}>{entry.rank}</Text>
-          </Group>
-        </Table.Td>
-        <Table.Td style={{ minWidth: 0, overflow: 'hidden' }}>
-          <Group wrap="nowrap" gap="sm" align="flex-start">
-            <Avatar radius="xl" size={44} src={entry.avatarUrl || undefined} alt={displayName}>
-              {(displayName ?? '?').slice(0, 1).toUpperCase()}
-            </Avatar>
-            <Stack gap={4} style={{ minWidth: 0, overflow: 'hidden' }}>
-              <Group gap="xs" align="center" wrap="nowrap" style={{ minWidth: 0 }}>
-                <Text fw={600} truncate="end" style={{ minWidth: 0 }}>
-                  {displayName}
-                </Text>
-                <DiscordBadge entry={entry} />
-              </Group>
-              <LevelBadge entry={entry} />
-            </Stack>
-          </Group>
-        </Table.Td>
-        <Table.Td style={{ textAlign: 'right' }}>
-          {typeof valueContent === 'string' || typeof valueContent === 'number' ? (
-            <Text fw={600}>{valueContent}</Text>
-          ) : (
-            valueContent
-          )}
-        </Table.Td>
-      </Table.Tr>
-    )
-  }
-
   return (
     <Container size="xl" pt={48} pb={48}>
       <Stack gap="xl">
@@ -153,7 +155,7 @@ export default function LeaderboardPage() {
           </Alert>
         ) : null}
 
-        {isPending ? renderLoadingState() : null}
+        {isPending ? <LoadingState sections={sections} /> : null}
 
         {!isPending ? (
           <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
@@ -177,7 +179,13 @@ export default function LeaderboardPage() {
                     </Table.Thead>
                     <Table.Tbody>
                       {entries.length ? (
-                        entries.map((entry) => renderRow(entry, section))
+                        entries.map((entry) => (
+                          <LeaderboardRow
+                            key={`${section.key}-${entry.username}`}
+                            entry={entry}
+                            section={section}
+                          />
+                        ))
                       ) : (
                         <Table.Tr>
                           <Table.Td colSpan={3}>

@@ -1,8 +1,8 @@
 import {
   createContext,
   type PropsWithChildren,
+  use,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useState,
@@ -105,7 +105,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext)
+  const context = use(AuthContext)
   if (!context) {
     throw new Error('useAuth must be used within AuthProvider')
   }

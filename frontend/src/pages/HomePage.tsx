@@ -1,15 +1,4 @@
-import {
-  Alert,
-  Autocomplete,
-  Button,
-  Checkbox,
-  Chip,
-  Group,
-  Modal,
-  Paper,
-  Stack,
-  Text,
-} from '@mantine/core'
+import { Alert, Autocomplete, Button, Group, Modal, Paper, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -19,55 +8,46 @@ import { formatApiError } from '../api/auth'
 import { endActiveCheckin, formatCheckinError, startCheckin } from '../api/checkins'
 import { isHttpError } from '../api/client'
 import { fetchSpaces } from '../api/spaces'
+import { FilterModal } from '../components/filters/FilterModal'
 import { SpacesMap } from '../components/map/SpacesMap'
 import { useAuth } from '../context/AuthContext'
 import { profileQueryKey } from '../hooks/useProfileQuery'
 import { spacesRootQueryKey, useSpacesQuery } from '../hooks/useSpacesQuery'
 import type { SpaceFilters } from '../types/spaces'
 
+type FiltersState = {
+  kind: SpaceFilters['kind']
+  availability: SpaceFilters['availability']
+  wifi: boolean
+  power: boolean
+  quiet: boolean
+  airConditioning: boolean
+}
+
+const INITIAL_FILTERS: FiltersState = {
+  kind: '',
+  availability: '',
+  wifi: false,
+  power: false,
+  quiet: false,
+  airConditioning: false,
+}
+
 export default function HomePage() {
   const { t } = useTranslation('spaces')
   const queryClient = useQueryClient()
   const { activeCheckin, isAuthenticated, refreshSession } = useAuth()
   const [search, setSearch] = useState('')
-  const [kind, setKind] = useState<SpaceFilters['kind']>('')
-  const [availability, setAvailability] = useState<SpaceFilters['availability']>('')
-  const [wifi, setWifi] = useState(false)
-  const [power, setPower] = useState(false)
-  const [quiet, setQuiet] = useState(false)
-  const [airConditioning, setAirConditioning] = useState(false)
+  const [filtersState, setFiltersState] = useState<FiltersState>(INITIAL_FILTERS)
   const [flyToTarget, setFlyToTarget] = useState<{ longitude: number; latitude: number } | null>(
     null,
   )
   const [searchOpened, { open: openSearch, close: closeSearch }] = useDisclosure(false)
   const [filtersOpened, filtersCtrl] = useDisclosure(false)
 
-  const [pendingFilters, setPendingFilters] = useState({
-    kind: '' as SpaceFilters['kind'],
-    availability: '' as SpaceFilters['availability'],
-    wifi: false,
-    power: false,
-    quiet: false,
-    airConditioning: false,
-  })
+  const openFilters = () => filtersCtrl.open()
 
-  const openFilters = () => {
-    setPendingFilters({ kind, availability, wifi, power, quiet, airConditioning })
-    filtersCtrl.open()
-  }
-
-  const filters = useMemo<SpaceFilters>(
-    () => ({
-      q: '',
-      kind,
-      availability,
-      wifi,
-      power,
-      quiet,
-      airConditioning,
-    }),
-    [airConditioning, availability, kind, power, quiet, wifi],
-  )
+  const filters = useMemo<SpaceFilters>(() => ({ q: '', ...filtersState }), [filtersState])
 
   const spacesQuery = useSpacesQuery(filters)
 
@@ -156,48 +136,16 @@ export default function HomePage() {
 
   const activeFilterCount = useMemo(() => {
     let c = 0
-    if (kind) c++
-    if (availability) c++
-    if (wifi) c++
-    if (power) c++
-    if (quiet) c++
-    if (airConditioning) c++
+    if (filtersState.kind) c++
+    if (filtersState.availability) c++
+    if (filtersState.wifi) c++
+    if (filtersState.power) c++
+    if (filtersState.quiet) c++
+    if (filtersState.airConditioning) c++
     return c
-  }, [kind, availability, wifi, power, quiet, airConditioning])
+  }, [filtersState])
 
-  const hasActiveFilters =
-    pendingFilters.kind !== '' ||
-    pendingFilters.availability !== '' ||
-    pendingFilters.wifi ||
-    pendingFilters.power ||
-    pendingFilters.quiet ||
-    pendingFilters.airConditioning
-
-  const resetPendingFilters = () => {
-    setPendingFilters({
-      kind: '',
-      availability: '',
-      wifi: false,
-      power: false,
-      quiet: false,
-      airConditioning: false,
-    })
-  }
-
-  const commitFilters = () => {
-    setKind(pendingFilters.kind)
-    setAvailability(pendingFilters.availability)
-    setWifi(pendingFilters.wifi)
-    setPower(pendingFilters.power)
-    setQuiet(pendingFilters.quiet)
-    setAirConditioning(pendingFilters.airConditioning)
-    filtersCtrl.close()
-  }
-
-  const discardFilters = () => {
-    setPendingFilters({ kind, availability, wifi, power, quiet, airConditioning })
-    filtersCtrl.close()
-  }
+  const handleCommitFilters = (f: FiltersState) => setFiltersState(f)
 
   const handleStartCheckin = (spaceId: string, usesPower: boolean) => {
     void startMutation.mutateAsync({ spaceId, usesPower })
@@ -206,22 +154,6 @@ export default function HomePage() {
   const handleEndCheckin = (checkinId: string) => {
     void endMutation.mutateAsync(checkinId)
   }
-
-  const kindOptions = [
-    { value: '', label: t('kindOptions.any') },
-    { value: 'library', label: t('kindOptions.library') },
-    { value: 'cafe', label: t('kindOptions.cafe') },
-    { value: 'classroom', label: t('kindOptions.classroom') },
-    { value: 'coworking', label: t('kindOptions.coworking') },
-    { value: 'other', label: t('kindOptions.other') },
-  ]
-
-  const availabilityOptions = [
-    { value: '', label: t('availability.any') },
-    { value: 'free', label: t('availability.free') },
-    { value: 'moderate', label: t('availability.moderate') },
-    { value: 'busy', label: t('availability.busy') },
-  ]
 
   return (
     <div
@@ -316,106 +248,12 @@ export default function HomePage() {
         </form>
       </Modal>
 
-      <Modal
+      <FilterModal
         opened={filtersOpened}
-        onClose={discardFilters}
-        title={t('filtersTitle')}
-        size="md"
-        scrollAreaComponent={undefined}
-      >
-        <Stack gap="xl">
-          <Group grow align="flex-start" gap="lg">
-            <div>
-              <Text size="sm" fw={600} mb={6}>
-                {t('kind')}
-              </Text>
-              <Chip.Group
-                value={pendingFilters.kind}
-                onChange={(v) =>
-                  setPendingFilters((prev) => ({ ...prev, kind: v as SpaceFilters['kind'] }))
-                }
-              >
-                <Group gap="xs">
-                  {kindOptions.map((opt) => (
-                    <Chip key={opt.value} value={opt.value} size="sm" variant="light">
-                      {opt.label}
-                    </Chip>
-                  ))}
-                </Group>
-              </Chip.Group>
-            </div>
-            <div>
-              <Text size="sm" fw={600} mb={6}>
-                {t('availabilityLabel')}
-              </Text>
-              <Chip.Group
-                value={pendingFilters.availability}
-                onChange={(v) =>
-                  setPendingFilters((prev) => ({
-                    ...prev,
-                    availability: v as SpaceFilters['availability'],
-                  }))
-                }
-              >
-                <Group gap="xs">
-                  {availabilityOptions.map((opt) => (
-                    <Chip key={opt.value} value={opt.value} size="sm" variant="light">
-                      {opt.label}
-                    </Chip>
-                  ))}
-                </Group>
-              </Chip.Group>
-            </div>
-          </Group>
-
-          <div>
-            <Text size="sm" fw={600} mb={8}>
-              {t('amenitiesLabel')}
-            </Text>
-            <Group gap="sm">
-              <Checkbox
-                label={t('amenities.wifi')}
-                checked={pendingFilters.wifi}
-                onChange={(event) => {
-                  const checked = event.currentTarget.checked
-                  setPendingFilters((prev) => ({ ...prev, wifi: checked }))
-                }}
-              />
-              <Checkbox
-                label={t('amenities.power')}
-                checked={pendingFilters.power}
-                onChange={(event) => {
-                  const checked = event.currentTarget.checked
-                  setPendingFilters((prev) => ({ ...prev, power: checked }))
-                }}
-              />
-              <Checkbox
-                label={t('amenities.quiet')}
-                checked={pendingFilters.quiet}
-                onChange={(event) => {
-                  const checked = event.currentTarget.checked
-                  setPendingFilters((prev) => ({ ...prev, quiet: checked }))
-                }}
-              />
-              <Checkbox
-                label={t('amenities.airConditioning')}
-                checked={pendingFilters.airConditioning}
-                onChange={(event) => {
-                  const checked = event.currentTarget.checked
-                  setPendingFilters((prev) => ({ ...prev, airConditioning: checked }))
-                }}
-              />
-            </Group>
-          </div>
-
-          <Group gap="sm" justify="space-between">
-            <Button variant="subtle" onClick={resetPendingFilters} disabled={!hasActiveFilters}>
-              {t('clearFilters')}
-            </Button>
-            <Button onClick={commitFilters}>{t('filtersDone')}</Button>
-          </Group>
-        </Stack>
-      </Modal>
+        current={filtersState}
+        onCommit={handleCommitFilters}
+        onClose={filtersCtrl.close}
+      />
     </div>
   )
 }

@@ -22,7 +22,7 @@
     "typecheck": "tsc -b",
     "analyze": "vite build && vite-bundle-visualizer",
     "fix": "npm run lint:fix && npm run format:fix",
-    "doctor": "npx react-doctor@latest"
+    "doctor": "react-doctor"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

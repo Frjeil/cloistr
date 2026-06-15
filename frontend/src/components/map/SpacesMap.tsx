@@ -20,7 +20,7 @@ import {
   IconX,
 } from '@tabler/icons-react'
 import maplibregl from 'maplibre-gl'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { fetchActiveCheckinsBySpace } from '../../api/checkins'
@@ -34,6 +34,42 @@ import { DARK_STYLE, DEFAULT_CENTER, LIGHT_STYLE, loadView, persistView } from '
 import { MapBtn } from './MapBtn'
 import { SpaceDetailModal } from './SpaceDetailModal'
 import type { Point } from './types'
+
+type PopupState = {
+  space: Point | null
+  container: HTMLDivElement | null
+  users: ActiveCheckinUser[]
+  loading: boolean
+}
+
+const INITIAL_POPUP: PopupState = {
+  space: null,
+  container: null,
+  users: [],
+  loading: false,
+}
+
+type PopupAction =
+  | { type: 'OPEN'; space: Point; container: HTMLDivElement }
+  | { type: 'CLOSE' }
+  | { type: 'FETCH_START' }
+  | { type: 'FETCH_SUCCESS'; users: ActiveCheckinUser[] }
+  | { type: 'FETCH_ERROR' }
+
+function popupReducer(state: PopupState, action: PopupAction): PopupState {
+  switch (action.type) {
+    case 'OPEN':
+      return { ...state, space: action.space, container: action.container }
+    case 'CLOSE':
+      return INITIAL_POPUP
+    case 'FETCH_START':
+      return { ...state, loading: true, users: [] }
+    case 'FETCH_SUCCESS':
+      return { ...state, loading: false, users: action.users }
+    case 'FETCH_ERROR':
+      return { ...state, loading: false, users: [] }
+  }
+}
 
 type Props = {
   spaces: SpaceSummary[]
@@ -69,14 +105,15 @@ export function SpacesMap({
   const renderClustersRef = useRef<() => void>(() => {})
   const prevPointsKeyRef = useRef('')
   const didRestoreViewRef = useRef(false)
-  const [popupState, setPopupState] = useState<{ space: Point; container: HTMLDivElement } | null>(
-    null,
-  )
-  const [mapLoaded, setMapLoaded] = useState(false)
+  const [popup, dispatchPopup] = useReducer(popupReducer, INITIAL_POPUP)
+  const [mapLoaded, _setMapLoaded] = useState(false)
+  const mapLoadedRef = useRef(false)
+  const setMapLoaded = useCallback((val: boolean) => {
+    mapLoadedRef.current = val
+    _setMapLoaded(val)
+  }, [])
   const [detailSpace, setDetailSpace] = useState<SpaceSummary | null>(null)
   const [detailOpened, setDetailOpened] = useState(false)
-  const [popupActiveUsers, setPopupActiveUsers] = useState<ActiveCheckinUser[]>([])
-  const [popupLoading, setPopupLoading] = useState(false)
   const lastFetchedSpaceIdRef = useRef<string | null>(null)
   const highlightedMarkerRef = useRef<string | null>(null)
 
@@ -116,29 +153,11 @@ export function SpacesMap({
     popupRef.current?.remove()
     popupRef.current = null
     popupOpenRef.current = false
-    setPopupState(null)
+    dispatchPopup({ type: 'CLOSE' })
+    lastFetchedSpaceIdRef.current = null
   }, [])
 
   const clusterIndexRef = useClusterIndex(points)
-
-  // Fetch active check-in users when popup opens
-  useEffect(() => {
-    if (!popupState) {
-      setPopupActiveUsers([])
-      lastFetchedSpaceIdRef.current = null
-      return
-    }
-    const spaceId = popupState.space.id
-    setPopupLoading(true)
-    setPopupActiveUsers([])
-    fetchActiveCheckinsBySpace(spaceId)
-      .then((users) => {
-        setPopupActiveUsers(users)
-        lastFetchedSpaceIdRef.current = spaceId
-      })
-      .catch(() => setPopupActiveUsers([]))
-      .finally(() => setPopupLoading(false))
-  }, [popupState?.space.id, popupState])
 
   // Init map — once
   useEffect(() => {
@@ -199,9 +218,8 @@ export function SpacesMap({
       setMapLoaded(false)
       map.remove()
       mapRef.current = null
-      setPopupState(null)
     }
-  }, [clearMarkers, closePopup, isLight])
+  }, [clearMarkers, closePopup, isLight, setMapLoaded])
 
   // Switch style on theme change — preserves view + tile cache
   useEffect(() => {
@@ -213,7 +231,7 @@ export function SpacesMap({
       map.resize()
       setMapLoaded(true)
     })
-  }, [isLight])
+  }, [isLight, setMapLoaded])
 
   // Popup handlers
   const closePopupRef = useRef(closePopup)
@@ -230,17 +248,25 @@ export function SpacesMap({
     const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: true, offset: 24 })
     popup.on('close', () => {
       popupOpenRef.current = false
-      setPopupState(null)
+      dispatchPopup({ type: 'CLOSE' })
+      lastFetchedSpaceIdRef.current = null
     })
     popupRef.current = popup
-    setPopupState({ space: point, container })
+    dispatchPopup({ type: 'OPEN', space: point, container })
     popup.setDOMContent(container).setLngLat([point.longitude, point.latitude]).addTo(map)
+    dispatchPopup({ type: 'FETCH_START' })
+    fetchActiveCheckinsBySpace(point.id)
+      .then((users) => {
+        dispatchPopup({ type: 'FETCH_SUCCESS', users })
+        lastFetchedSpaceIdRef.current = point.id
+      })
+      .catch(() => dispatchPopup({ type: 'FETCH_ERROR' }))
   }, [])
 
   // Render clusters at current viewport — called from effect AND from move/moveend events
   const renderClusters = useCallback(() => {
     const map = mapRef.current
-    if (!map || !mapLoaded) return
+    if (!map || !mapLoadedRef.current) return
     clearMarkers()
 
     const index = clusterIndexRef.current
@@ -300,14 +326,7 @@ export function SpacesMap({
     }
 
     markersRef.current = newMarkers
-  }, [
-    clearMarkers,
-    mapLoaded,
-    openPopupCb,
-    activeCheckin?.spaceId,
-    points,
-    clusterIndexRef.current,
-  ])
+  }, [clearMarkers, openPopupCb, activeCheckin?.spaceId, points, clusterIndexRef.current])
 
   renderClustersRef.current = renderClusters
 
@@ -407,7 +426,7 @@ export function SpacesMap({
     )
   }
 
-  const activeSpaceId = popupState?.space.id ?? detailSpace?.id
+  const activeSpaceId = popup.space?.id ?? detailSpace?.id
   const isActiveHere = !!activeCheckin && activeCheckin.spaceId === activeSpaceId
   const hasActiveElsewhere = !!activeCheckin && !isActiveHere
 
@@ -449,75 +468,70 @@ export function SpacesMap({
           )}
         </div>
       </div>
-      {popupState &&
-        createPortal(
-          <Paper withBorder p="md" radius="md" shadow="md" style={{ width: 280 }}>
-            <Stack gap={8}>
-              <Group gap="xs" justify="space-between" wrap="nowrap">
-                <Text fw={600} size="sm" truncate style={{ flex: 1 }}>
-                  {popupState.space.name}
-                </Text>
-                <ActionIcon variant="subtle" size="sm" color="gray" onClick={closePopup}>
-                  <IconX size={14} />
-                </ActionIcon>
-              </Group>
-              {popupState.space.address && (
-                <Text size="xs" c="dimmed">
-                  {popupState.space.address}
-                </Text>
-              )}
-              <Group gap={4}>
-                <Badge size="sm" variant="light" color="blue">
-                  {popupState.space.kind
-                    ? t(`kindOptions.${popupState.space.kind}`)
-                    : t('kindOptions.other')}
-                </Badge>
-                <Badge
-                  size="sm"
-                  variant="light"
-                  color={AVAILABILITY_COLORS[popupState.space.availability ?? 'free'] ?? 'gray'}
-                >
-                  {popupState.space.availability
-                    ? t(`availability.${popupState.space.availability}`)
-                    : t('availability.unknown')}
-                </Badge>
-              </Group>
-              <Group gap={6}>
-                {popupState.space.wifi && <IconWifi size={14} />}
-                {popupState.space.power && <IconPlug size={14} />}
-                {popupState.space.quiet && <IconVolume3 size={14} />}
-                {popupState.space.airConditioning && <IconSnowflake size={14} />}
-              </Group>
-              {popupLoading ? (
-                <Group gap={4}>
-                  <Skeleton height={28} width={28} radius="xl" />
-                  <Skeleton height={28} width={28} radius="xl" />
-                  <Skeleton height={28} width={28} radius="xl" />
+      {popup.space &&
+        popup.container &&
+        (() => {
+          const s = popup.space
+          return createPortal(
+            <Paper withBorder p="md" radius="md" shadow="md" style={{ width: 280 }}>
+              <Stack gap={8}>
+                <Group gap="xs" justify="space-between" wrap="nowrap">
+                  <Text fw={600} size="sm" truncate style={{ flex: 1 }}>
+                    {s.name}
+                  </Text>
+                  <ActionIcon variant="subtle" size="sm" color="gray" onClick={closePopup}>
+                    <IconX size={14} />
+                  </ActionIcon>
                 </Group>
-              ) : popupActiveUsers.length > 0 ? (
-                <Avatar.Group>
-                  {popupActiveUsers.slice(0, 5).map((u) => (
-                    <Avatar key={u.id} size="sm" src={u.avatarUrl || undefined} alt={u.username}>
-                      {u.username.slice(0, 1).toUpperCase()}
-                    </Avatar>
-                  ))}
-                  {popupActiveUsers.length > 5 && (
-                    <Avatar size="sm">+{popupActiveUsers.length - 5}</Avatar>
-                  )}
-                </Avatar.Group>
-              ) : null}
-              <Button
-                size="xs"
-                variant="light"
-                fullWidth
-                onClick={() => openDetail(popupState.space)}
-              >
-                {t('details.open')}
-              </Button>
-            </Stack>
-          </Paper>,
-          popupState.container,
-        )}
+                {s.address && (
+                  <Text size="xs" c="dimmed">
+                    {s.address}
+                  </Text>
+                )}
+                <Group gap={4}>
+                  <Badge size="sm" variant="light" color="blue">
+                    {s.kind ? t(`kindOptions.${s.kind}`) : t('kindOptions.other')}
+                  </Badge>
+                  <Badge
+                    size="sm"
+                    variant="light"
+                    color={AVAILABILITY_COLORS[s.availability ?? 'free'] ?? 'gray'}
+                  >
+                    {s.availability
+                      ? t(`availability.${s.availability}`)
+                      : t('availability.unknown')}
+                  </Badge>
+                </Group>
+                <Group gap={6}>
+                  {s.wifi && <IconWifi size={14} />}
+                  {s.power && <IconPlug size={14} />}
+                  {s.quiet && <IconVolume3 size={14} />}
+                  {s.airConditioning && <IconSnowflake size={14} />}
+                </Group>
+                {popup.loading ? (
+                  <Group gap={4}>
+                    <Skeleton height={28} width={28} radius="xl" />
+                    <Skeleton height={28} width={28} radius="xl" />
+                    <Skeleton height={28} width={28} radius="xl" />
+                  </Group>
+                ) : popup.users.length > 0 ? (
+                  <Avatar.Group>
+                    {popup.users.slice(0, 5).map((u) => (
+                      <Avatar key={u.id} size="sm" src={u.avatarUrl || undefined} alt={u.username}>
+                        {u.username.slice(0, 1).toUpperCase()}
+                      </Avatar>
+                    ))}
+                    {popup.users.length > 5 && <Avatar size="sm">+{popup.users.length - 5}</Avatar>}
+                  </Avatar.Group>
+                ) : null}
+                <Button size="xs" variant="light" fullWidth onClick={() => openDetail(s)}>
+                  {t('details.open')}
+                </Button>
+              </Stack>
+            </Paper>,
+            popup.container,
+          )
+        })()}
       <SpaceDetailModal
         space={detailSpace}
         opened={detailOpened}
@@ -528,7 +542,7 @@ export function SpacesMap({
         onStartCheckin={handleStart}
         onEndCheckin={handleEnd}
         activeCheckinId={activeCheckin?.id ?? null}
-        activeCheckinUsers={popupActiveUsers}
+        activeCheckinUsers={popup.users}
       />
     </div>
   )

@@ -1,11 +1,4 @@
-import {
-  createContext,
-  type PropsWithChildren,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-} from 'react'
+import { createContext, type PropsWithChildren, use, useCallback, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 type SupportedLanguage = 'it' | 'en'
@@ -48,7 +41,7 @@ export function LanguageProvider({ children }: PropsWithChildren) {
 }
 
 export function useLanguage() {
-  const context = useContext(LanguageContext)
+  const context = use(LanguageContext)
   if (!context) {
     throw new Error('useLanguage must be used within LanguageProvider')
   }

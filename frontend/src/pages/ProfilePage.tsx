@@ -2,12 +2,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import {
   ActionIcon,
   Alert,
-  Avatar,
   Badge,
   Button,
   Container,
   Divider,
-  FileButton,
   Group,
   Modal,
   Paper,
@@ -36,6 +34,7 @@ import {
   updateProfileSettings,
   uploadProfileAvatar,
 } from '../api/profile'
+import { ProfileAvatar } from '../components/profile/ProfileAvatar'
 import { useAuth } from '../context/AuthContext'
 import { useBadgesQuery } from '../hooks/useBadgesQuery'
 import { useCheckinHistoryQuery } from '../hooks/useCheckinHistoryQuery'
@@ -345,63 +344,21 @@ export default function ProfilePage() {
               ) : null}
 
               {/* Avatar */}
-              <Group align="flex-start" wrap="wrap" gap="lg">
-                {profileQuery.isPending ? (
-                  <Skeleton circle height={96} width={96} />
-                ) : (
-                  <Avatar radius="xl" size={96} src={avatarUrl || undefined} alt={displayName}>
-                    {displayName.slice(0, 1).toUpperCase()}
-                  </Avatar>
-                )}
-                <Stack gap="xs" style={{ flex: 1, minWidth: 0 }}>
-                  <Group gap="sm">
-                    <FileButton
-                      onChange={(file) => {
-                        if (file) {
-                          setAvatarError(null)
-                          setAvatarMessage(null)
-                          void uploadAvatarMutation.mutateAsync(file)
-                        }
-                      }}
-                      accept="image/png,image/jpeg,image/webp"
-                    >
-                      {(props) => (
-                        <Button
-                          {...props}
-                          type="button"
-                          variant="light"
-                          loading={uploadAvatarMutation.isPending}
-                        >
-                          {t('uploadAvatar')}
-                        </Button>
-                      )}
-                    </FileButton>
-                    <Button
-                      type="button"
-                      color="red"
-                      variant="subtle"
-                      onClick={() => void deleteAvatarMutation.mutateAsync()}
-                      disabled={!avatarUrl}
-                      loading={deleteAvatarMutation.isPending}
-                    >
-                      {t('removeAvatar')}
-                    </Button>
-                  </Group>
-                  <Text size="sm" c="dimmed">
-                    {t('avatarHelp')}
-                  </Text>
-                  {avatarError ? (
-                    <Alert color="red" variant="light">
-                      {avatarError}
-                    </Alert>
-                  ) : null}
-                  {avatarMessage ? (
-                    <Alert color="green" variant="light">
-                      {avatarMessage}
-                    </Alert>
-                  ) : null}
-                </Stack>
-              </Group>
+              <ProfileAvatar
+                avatarUrl={avatarUrl}
+                displayName={displayName}
+                isPending={profileQuery.isPending}
+                uploadPending={uploadAvatarMutation.isPending}
+                deletePending={deleteAvatarMutation.isPending}
+                avatarError={avatarError}
+                avatarMessage={avatarMessage}
+                onUpload={(file) => {
+                  setAvatarError(null)
+                  setAvatarMessage(null)
+                  void uploadAvatarMutation.mutateAsync(file)
+                }}
+                onDelete={() => void deleteAvatarMutation.mutateAsync()}
+              />
 
               <Divider />
 
