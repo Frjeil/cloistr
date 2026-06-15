@@ -172,7 +172,7 @@ export function SpacesMap({
       zoom: sv?.zoom ?? 12,
       pitch: 0,
       bearing: 0,
-      attributionControl: true,
+      attributionControl: {},
     })
     mapRef.current = map
     map.addControl(
@@ -495,7 +495,11 @@ export function SpacesMap({
                   <Badge
                     size="sm"
                     variant="light"
-                    color={AVAILABILITY_COLORS[s.availability ?? 'free'] ?? 'gray'}
+                    color={
+                      AVAILABILITY_COLORS[
+                        (s.availability ?? 'free') as 'free' | 'moderate' | 'busy'
+                      ] ?? 'gray'
+                    }
                   >
                     {s.availability
                       ? t(`availability.${s.availability}`)
@@ -524,7 +528,15 @@ export function SpacesMap({
                     {popup.users.length > 5 && <Avatar size="sm">+{popup.users.length - 5}</Avatar>}
                   </Avatar.Group>
                 ) : null}
-                <Button size="xs" variant="light" fullWidth onClick={() => openDetail(s)}>
+                <Button
+                  size="xs"
+                  variant="light"
+                  fullWidth
+                  onClick={() => {
+                    const full = spaces.find((sp) => sp.id === s.id)
+                    if (full) openDetail(full)
+                  }}
+                >
                   {t('details.open')}
                 </Button>
               </Stack>

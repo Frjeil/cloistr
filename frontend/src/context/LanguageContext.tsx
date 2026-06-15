@@ -13,7 +13,7 @@ const LanguageContext = createContext<LanguageContextValue | null>(null)
 
 export function LanguageProvider({ children }: PropsWithChildren) {
   const { i18n } = useTranslation()
-  const language = i18n.language.startsWith('en') ? 'en' : 'it'
+  const language: SupportedLanguage = i18n.language.startsWith('en') ? 'en' : 'it'
 
   const setLanguage = useCallback(
     (nextLanguage: SupportedLanguage) => {

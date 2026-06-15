@@ -1,5 +1,6 @@
 import type {
   BadgeListResponse,
+  FavoriteSpaceRef,
   PersonalStatsResponse,
   ProfileDetails,
   ProfileLevel,

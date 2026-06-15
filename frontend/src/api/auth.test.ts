@@ -10,9 +10,8 @@ import {
   requestPasswordReset,
 } from './auth'
 
-vi.mock('./client', () => ({
-  apiFetch: vi.fn(),
-  HttpError: class HttpError extends Error {
+vi.mock('./client', () => {
+  class MockHttpError extends Error {
     status?: number
     body?: unknown
     constructor(message: string, options?: { status?: number; body?: unknown }) {
@@ -21,9 +20,13 @@ vi.mock('./client', () => ({
       this.status = options?.status
       this.body = options?.body
     }
-  },
-  isHttpError: (error: unknown): error is HttpError => error instanceof HttpError,
-}))
+  }
+  return {
+    apiFetch: vi.fn(),
+    HttpError: MockHttpError,
+    isHttpError: (error: unknown): error is MockHttpError => error instanceof MockHttpError,
+  }
+})
 
 describe('normalizeSessionPayload', () => {
   it('returns null for non-object payload', () => {

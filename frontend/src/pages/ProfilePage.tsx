@@ -345,7 +345,7 @@ export default function ProfilePage() {
 
               {/* Avatar */}
               <ProfileAvatar
-                avatarUrl={avatarUrl}
+                avatarUrl={avatarUrl ?? undefined}
                 displayName={displayName}
                 isPending={profileQuery.isPending}
                 uploadPending={uploadAvatarMutation.isPending}
