@@ -3,12 +3,14 @@ import {
   Alert,
   Button,
   Container,
+  Divider,
   Paper,
   PasswordInput,
   Stack,
   TextInput,
   Title,
 } from '@mantine/core'
+import { IconBrandGithub, IconBrandGoogle } from '@tabler/icons-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -16,6 +18,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { loginUser } from '../api/auth'
 import { useAuth } from '../context/AuthContext'
 import { type LoginFormInput, type LoginFormValues, loginSchema } from '../schemas/auth'
+
+const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:8000'
 
 export default function LoginPage() {
   const { t } = useTranslation('auth')
@@ -86,6 +90,27 @@ export default function LoginPage() {
             </Button>
           </Stack>
         </form>
+        <Divider my="md" label={t('login.orContinueWith')} labelPosition="center" />
+        <Stack>
+          <Button
+            variant="outline"
+            leftSection={<IconBrandGoogle size={16} />}
+            component="a"
+            href={`${API_BASE}/api/oauth/google/login/`}
+            fullWidth
+          >
+            Google
+          </Button>
+          <Button
+            variant="outline"
+            leftSection={<IconBrandGithub size={16} />}
+            component="a"
+            href={`${API_BASE}/api/oauth/github/login/`}
+            fullWidth
+          >
+            GitHub
+          </Button>
+        </Stack>
       </Paper>
     </Container>
   )

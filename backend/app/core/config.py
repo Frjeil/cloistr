@@ -21,6 +21,11 @@ class Settings(BaseSettings):
     smtp_use_ssl: bool = False
     smtp_timeout_seconds: int = 10
 
+    google_client_id: str | None = None
+    google_client_secret: str | None = None
+    github_client_id: str | None = None
+    github_client_secret: str | None = None
+
 
 @lru_cache
 def get_settings() -> Settings:

@@ -1,15 +1,24 @@
 from __future__ import annotations
 
-import base64
 import hashlib
 import hmac
 import secrets
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
+from pwdlib import PasswordHash
+from pwdlib.exceptions import UnknownHashError
+from pwdlib.hashers.argon2 import Argon2Hasher
+from pwdlib.hashers.bcrypt import BcryptHasher
+
 from app.core.config import get_settings
 
-PASSWORD_HASH_ITERATIONS = 210_000
+password_hash = PasswordHash(
+    (
+        Argon2Hasher(),
+        BcryptHasher(),
+    )
+)
 SESSION_COOKIE_NAME = "cloistr_session"
 CSRF_COOKIE_NAME = "cloistr_csrf"
 SESSION_TTL = timedelta(days=30)
@@ -39,35 +48,16 @@ def hash_secret(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
-def hash_password(password: str, salt: bytes | None = None) -> str:
-    salt_bytes = salt or secrets.token_bytes(16)
-    derived_key = hashlib.pbkdf2_hmac(
-        "sha256",
-        password.encode("utf-8"),
-        salt_bytes,
-        PASSWORD_HASH_ITERATIONS,
-    )
-    salt_text = base64.urlsafe_b64encode(salt_bytes).decode("ascii")
-    key_text = base64.urlsafe_b64encode(derived_key).decode("ascii")
-    return f"{PASSWORD_HASH_ITERATIONS}${salt_text}${key_text}"
+def hash_password(password: str) -> str:
+    return password_hash.hash(password)
 
 
 def verify_password(password: str, encoded_password: str) -> bool:
     try:
-        iterations_text, salt_text, key_text = encoded_password.split("$", maxsplit=2)
-        iterations = int(iterations_text)
-        salt_bytes = base64.urlsafe_b64decode(salt_text.encode("ascii"))
-        expected_key = base64.urlsafe_b64decode(key_text.encode("ascii"))
-    except (ValueError, TypeError, base64.binascii.Error):
+        result, _updated = password_hash.verify_and_update(password, encoded_password)
+        return result
+    except UnknownHashError:
         return False
-
-    derived_key = hashlib.pbkdf2_hmac(
-        "sha256",
-        password.encode("utf-8"),
-        salt_bytes,
-        iterations,
-    )
-    return hmac.compare_digest(derived_key, expected_key)
 
 
 def validate_token(candidate: str, expected_hash: str) -> bool:

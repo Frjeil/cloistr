@@ -31,6 +31,8 @@ class ProfileDocument(Document):
     has_night_owl: bool = False
     has_social_checkins: bool = False
     favorite_spaces: list[str] = []
+    google_id: str | None = None
+    github_id: str | None = None
 
     class Settings:
         name = "profiles"
