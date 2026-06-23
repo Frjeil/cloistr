@@ -54,12 +54,13 @@ backend/.coverage
 .impeccable
 .opencode/
 openspec/
-AGENTS.md
 .github/CODEOWNERS
 .agent-ready/
 .agent-ready/badge.svg
 .agent-ready/agent-ready-report.html
 AGENTS.md
+docs/adr/
+docs/spec-template.md
 DESIGN.md
 PRODUCT.md
 

@@ -6,35 +6,49 @@
 
 :root {
   color-scheme: light;
-  --app-text: oklch(0.2 0.03 255);
-  --app-text-muted: oklch(0.53 0.02 255);
-  --app-border: oklch(0.9 0.01 255 / 0.95);
-  --app-surface: oklch(0.99 0.004 255 / 0.86);
-  --app-surface-strong: oklch(0.97 0.008 255 / 0.96);
-  --app-bg-solid: oklch(0.97 0.01 220);
+  --app-text: oklch(0.15 0.035 255);
+  --app-text-muted: oklch(0.45 0.025 255);
+  --app-border: oklch(0.88 0.012 255 / 0.95);
+  --app-surface: oklch(0.99 0.005 255 / 0.92);
+  --app-surface-strong: oklch(0.96 0.01 255 / 0.96);
+  --app-bg-solid: oklch(0.96 0.012 220);
   --app-bg-overlay:
-    radial-gradient(circle at top left, oklch(0.95 0.06 220 / 0.34), transparent 30%),
-    radial-gradient(circle at top right, oklch(0.92 0.05 170 / 0.22), transparent 24%),
-    linear-gradient(180deg, oklch(0.99 0.005 220) 0%, oklch(0.96 0.01 220) 100%);
-  --app-selection-bg: oklch(0.83 0.08 220 / 0.35);
-  --app-selection-text: oklch(0.18 0.03 255);
+    radial-gradient(circle at top left, oklch(0.93 0.07 220 / 0.3), transparent 30%),
+    radial-gradient(circle at top right, oklch(0.9 0.06 170 / 0.18), transparent 24%),
+    linear-gradient(180deg, oklch(0.98 0.006 220) 0%, oklch(0.95 0.012 220) 100%);
+  --app-selection-bg: oklch(0.8 0.1 220 / 0.35);
+  --app-selection-text: oklch(0.12 0.03 255);
+  --app-glow-blue: 0 0 12px oklch(0.6 0.2 240 / 0.25);
+  --app-glow-green: 0 0 12px oklch(0.6 0.15 160 / 0.25);
+
+  /* Z-index scale */
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-drawer-backdrop: 300;
+  --z-drawer: 400;
+  --z-modal-backdrop: 500;
+  --z-modal: 600;
+  --z-notification: 700;
+  --z-tooltip: 800;
 }
 
 [data-mantine-color-scheme="dark"] {
   color-scheme: dark;
-  filter: saturate(0.9);
-  --app-text: oklch(0.95 0.015 255);
-  --app-text-muted: oklch(0.74 0.015 255);
-  --app-border: oklch(0.35 0.02 255 / 0.86);
-  --app-surface: oklch(0.23 0.02 255 / 0.88);
-  --app-surface-strong: oklch(0.28 0.02 255 / 0.96);
-  --app-bg-solid: oklch(0.14 0.02 255);
+  --app-text: oklch(0.95 0.018 255);
+  --app-text-muted: oklch(0.7 0.02 255);
+  --app-border: oklch(0.32 0.025 255 / 0.86);
+  --app-surface: oklch(0.2 0.025 255 / 0.88);
+  --app-surface-strong: oklch(0.25 0.025 255 / 0.96);
+  --app-bg-solid: oklch(0.12 0.025 255);
   --app-bg-overlay:
-    radial-gradient(circle at top left, oklch(0.28 0.07 230 / 0.3), transparent 30%),
-    radial-gradient(circle at top right, oklch(0.24 0.06 170 / 0.16), transparent 24%),
-    linear-gradient(180deg, oklch(0.16 0.02 255) 0%, oklch(0.11 0.02 255) 100%);
-  --app-selection-bg: oklch(0.65 0.1 220 / 0.35);
-  --app-selection-text: oklch(0.98 0.01 255);
+    radial-gradient(circle at top left, oklch(0.25 0.08 230 / 0.25), transparent 30%),
+    radial-gradient(circle at top right, oklch(0.22 0.07 170 / 0.14), transparent 24%),
+    linear-gradient(180deg, oklch(0.14 0.025 255) 0%, oklch(0.1 0.025 255) 100%);
+  --app-selection-bg: oklch(0.55 0.12 220 / 0.35);
+  --app-selection-text: oklch(0.97 0.015 255);
+  --app-glow-blue: 0 0 12px oklch(0.5 0.15 240 / 0.2);
+  --app-glow-green: 0 0 12px oklch(0.5 0.12 160 / 0.2);
 }
 
 html {
@@ -62,6 +76,17 @@ body {
   color: inherit;
 }
 
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p,
+li {
+  text-wrap: pretty;
+}
+
 a {
   color: inherit;
 }
@@ -69,6 +94,22 @@ a {
 ::selection {
   background: var(--app-selection-bg);
   color: var(--app-selection-text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--mantine-color-blue-filled, oklch(0.55 0.2 250));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+  }
 }
 
 /* Map styles */
@@ -97,7 +138,16 @@ a {
   position: relative;
   background: linear-gradient(180deg, oklch(0.65 0.18 230) 0%, oklch(0.5 0.18 260) 100%);
   box-shadow: 0 0 0 4px oklch(0.4 0.15 260 / 0.18);
-  transition: transform 200ms ease-out;
+  transition:
+    transform 200ms ease-out,
+    box-shadow 200ms ease-out;
+}
+
+.space-map-marker:hover {
+  transform: scale(1.15);
+  box-shadow:
+    0 0 0 6px oklch(0.4 0.15 260 / 0.25),
+    var(--app-glow-blue);
 }
 
 .space-map-marker::after {
@@ -115,6 +165,12 @@ a {
   box-shadow: 0 0 0 5px oklch(0.55 0.15 180 / 0.22);
 }
 
+.space-map-marker--active:hover {
+  box-shadow:
+    0 0 0 7px oklch(0.55 0.15 180 / 0.3),
+    var(--app-glow-green);
+}
+
 .space-map-marker--active::after {
   inset: 5px;
 }
@@ -125,6 +181,14 @@ a {
 
 .space-map-marker--highlighted::after {
   inset: 5px;
+}
+
+.space-map-marker--pop {
+  animation: markerPop 350ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.space-map-marker--pop-active {
+  animation: markerPopActive 350ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
 @keyframes markerRing {
@@ -150,11 +214,14 @@ a {
   font-family: "IBM Plex Sans", system-ui, sans-serif;
   font-weight: 700;
   color: #fff;
-  transition: transform 200ms ease-out;
+  transition:
+    transform 200ms ease-out,
+    box-shadow 200ms ease-out;
 }
 
 .space-map-cluster:hover {
   transform: scale(1.12);
+  box-shadow: var(--app-glow-blue);
 }
 
 .space-map-cluster[data-size="sm"] {
@@ -206,19 +273,23 @@ a {
   justify-content: center;
   border: 0;
   cursor: pointer;
-  background: #fff;
-  color: #222;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  background: var(--mantine-color-body, #fff);
+  color: var(--app-text);
+  border-bottom: 1px solid var(--app-border);
+  transition: background 200ms ease-out;
 }
+
 .space-map-btn--top {
   border-radius: 4px 4px 0 0;
 }
+
 .space-map-btn--bottom {
   border-radius: 0 0 4px 4px;
   border-bottom: 0;
 }
+
 .space-map-btn[data-hovered] {
-  background: #f4f4f4;
+  background: var(--app-surface-strong);
 }
 
 .space-map-filter-badge {
@@ -298,4 +369,26 @@ a {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Glow badge for levels/achievements */
+.badge-glow {
+  position: relative;
+}
+
+.badge-glow::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: inherit;
+  opacity: 0.3;
+  filter: blur(6px);
+  z-index: -1;
+}
+
+/* Counter number styling */
+.stat-value {
+  font-variant-numeric: tabular-nums;
+  display: inline-block;
 }

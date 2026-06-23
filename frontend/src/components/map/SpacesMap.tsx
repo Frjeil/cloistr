@@ -1,24 +1,4 @@
 import 'maplibre-gl/dist/maplibre-gl.css'
-import {
-  ActionIcon,
-  Avatar,
-  Badge,
-  Button,
-  Group,
-  Paper,
-  Skeleton,
-  Stack,
-  Text,
-} from '@mantine/core'
-import {
-  IconFilter,
-  IconPlug,
-  IconSearch,
-  IconSnowflake,
-  IconVolume3,
-  IconWifi,
-  IconX,
-} from '@tabler/icons-react'
 import maplibregl from 'maplibre-gl'
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -29,9 +9,9 @@ import { useMapTheme } from '../../hooks/useMapTheme'
 import type { ActiveCheckin } from '../../types/auth'
 import type { ActiveCheckinUser } from '../../types/checkins'
 import type { SpaceSummary } from '../../types/spaces'
-import { AVAILABILITY_COLORS } from '../../types/spaces'
 import { DARK_STYLE, DEFAULT_CENTER, LIGHT_STYLE, loadView, persistView } from './constants'
-import { MapBtn } from './MapBtn'
+import { MapControls } from './MapControls'
+import { MapPopupContent } from './MapPopupContent'
 import { SpaceDetailModal } from './SpaceDetailModal'
 import type { Point } from './types'
 
@@ -284,7 +264,8 @@ export function SpacesMap({
     const newMarkers: maplibregl.Marker[] = []
 
     for (const feature of features) {
-      const coords = (feature.geometry as GeoJSON.Point).coordinates as [number, number]
+      const coords = (feature.geometry as { type: string; coordinates: [number, number] })
+        .coordinates
 
       if (feature.properties && 'cluster' in feature.properties && feature.properties.cluster) {
         const raw = (feature.properties.point_count as number) || 0
@@ -433,117 +414,27 @@ export function SpacesMap({
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: 480 }}>
       <div ref={containerRef} className="space-map-canvas" />
-      <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 2000 }}>
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            borderRadius: 4,
-            overflow: 'hidden',
-            boxShadow: '0 0 0 2px rgba(0,0,0,0.1)',
-          }}
-        >
-          {onSearchClick && (
-            <MapBtn
-              icon={<IconSearch size={16} />}
-              label="Search"
-              onClick={onSearchClick}
-              top
-              bottom={!onFilterClick}
-            />
-          )}
-          {onFilterClick && (
-            <div style={{ position: 'relative' }}>
-              <MapBtn
-                icon={<IconFilter size={16} />}
-                label="Filter"
-                onClick={onFilterClick}
-                top={!onSearchClick}
-                bottom
-              />
-              {activeFilterCount > 0 && (
-                <span className="space-map-filter-badge">{activeFilterCount}</span>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
+      <MapControls
+        onSearchClick={onSearchClick}
+        onFilterClick={onFilterClick}
+        activeFilterCount={activeFilterCount}
+      />
       {popup.space &&
         popup.container &&
-        (() => {
-          const s = popup.space
-          return createPortal(
-            <Paper withBorder p="md" radius="md" shadow="md" style={{ width: 280 }}>
-              <Stack gap={8}>
-                <Group gap="xs" justify="space-between" wrap="nowrap">
-                  <Text fw={600} size="sm" truncate style={{ flex: 1 }}>
-                    {s.name}
-                  </Text>
-                  <ActionIcon variant="subtle" size="sm" color="gray" onClick={closePopup}>
-                    <IconX size={14} />
-                  </ActionIcon>
-                </Group>
-                {s.address && (
-                  <Text size="xs" c="dimmed">
-                    {s.address}
-                  </Text>
-                )}
-                <Group gap={4}>
-                  <Badge size="sm" variant="light" color="blue">
-                    {s.kind ? t(`kindOptions.${s.kind}`) : t('kindOptions.other')}
-                  </Badge>
-                  <Badge
-                    size="sm"
-                    variant="light"
-                    color={
-                      AVAILABILITY_COLORS[
-                        (s.availability ?? 'free') as 'free' | 'moderate' | 'busy'
-                      ] ?? 'gray'
-                    }
-                  >
-                    {s.availability
-                      ? t(`availability.${s.availability}`)
-                      : t('availability.unknown')}
-                  </Badge>
-                </Group>
-                <Group gap={6}>
-                  {s.wifi && <IconWifi size={14} />}
-                  {s.power && <IconPlug size={14} />}
-                  {s.quiet && <IconVolume3 size={14} />}
-                  {s.airConditioning && <IconSnowflake size={14} />}
-                </Group>
-                {popup.loading ? (
-                  <Group gap={4}>
-                    <Skeleton height={28} width={28} radius="xl" />
-                    <Skeleton height={28} width={28} radius="xl" />
-                    <Skeleton height={28} width={28} radius="xl" />
-                  </Group>
-                ) : popup.users.length > 0 ? (
-                  <Avatar.Group>
-                    {popup.users.slice(0, 5).map((u) => (
-                      <Avatar key={u.id} size="sm" src={u.avatarUrl || undefined} alt={u.username}>
-                        {u.username.slice(0, 1).toUpperCase()}
-                      </Avatar>
-                    ))}
-                    {popup.users.length > 5 && <Avatar size="sm">+{popup.users.length - 5}</Avatar>}
-                  </Avatar.Group>
-                ) : null}
-                <Button
-                  size="xs"
-                  variant="light"
-                  fullWidth
-                  onClick={() => {
-                    const full = spaces.find((sp) => sp.id === s.id)
-                    if (full) openDetail(full)
-                  }}
-                >
-                  {t('details.open')}
-                </Button>
-              </Stack>
-            </Paper>,
-            popup.container,
-          )
-        })()}
+        createPortal(
+          <MapPopupContent
+            space={popup.space}
+            container={popup.container}
+            loading={popup.loading}
+            users={popup.users}
+            onClose={closePopup}
+            onDetail={(point) => {
+              const full = spaces.find((sp) => sp.id === point.id)
+              if (full) openDetail(full)
+            }}
+          />,
+          popup.container,
+        )}
       <SpaceDetailModal
         space={detailSpace}
         opened={detailOpened}

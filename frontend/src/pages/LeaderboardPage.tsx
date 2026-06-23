@@ -13,11 +13,13 @@ import {
   Title,
 } from '@mantine/core'
 import { IconTrophy } from '@tabler/icons-react'
+import { motion } from 'motion/react'
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLeaderboardQuery } from '../hooks/useLeaderboardQuery'
 import type { LeaderboardEntry, LeaderboardSectionKey } from '../types/leaderboard'
 import { DiscordBadge, LevelBadge } from '../utils/leaderboard'
+import { fadeUp, fadeUpStagger } from '../utils/motion'
 
 type SectionConfig = {
   key: LeaderboardSectionKey
@@ -158,47 +160,51 @@ export default function LeaderboardPage() {
         {isPending ? <LoadingState sections={sections} /> : null}
 
         {!isPending ? (
-          <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
-            {sections.map((section) => {
-              const entries = data?.[section.key] ?? []
+          <motion.div variants={fadeUpStagger} initial="hidden" animate="visible">
+            <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
+              {sections.map((section) => {
+                const entries = data?.[section.key] ?? []
 
-              return (
-                <Paper withBorder radius="md" key={section.key} p="sm" style={{ height: '100%' }}>
-                  <Title order={2} size="h4" mb="sm">
-                    {section.title}
-                  </Title>
-                  <Table verticalSpacing="sm" striped highlightOnHover>
-                    <Table.Thead>
-                      <Table.Tr>
-                        <Table.Th>{t('rank')}</Table.Th>
-                        <Table.Th>{t('member')}</Table.Th>
-                        <Table.Th style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>
-                          {section.valueLabel}
-                        </Table.Th>
-                      </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                      {entries.length ? (
-                        entries.map((entry) => (
-                          <LeaderboardRow
-                            key={`${section.key}-${entry.username}`}
-                            entry={entry}
-                            section={section}
-                          />
-                        ))
-                      ) : (
-                        <Table.Tr>
-                          <Table.Td colSpan={3}>
-                            <Text c="dimmed">{t('noParticipants')}</Text>
-                          </Table.Td>
-                        </Table.Tr>
-                      )}
-                    </Table.Tbody>
-                  </Table>
-                </Paper>
-              )
-            })}
-          </SimpleGrid>
+                return (
+                  <motion.div key={section.key} variants={fadeUp}>
+                    <Paper withBorder radius="md" p="sm" style={{ height: '100%' }}>
+                      <Title order={2} size="h4" mb="sm">
+                        {section.title}
+                      </Title>
+                      <Table verticalSpacing="sm" striped highlightOnHover>
+                        <Table.Thead>
+                          <Table.Tr>
+                            <Table.Th>{t('rank')}</Table.Th>
+                            <Table.Th>{t('member')}</Table.Th>
+                            <Table.Th style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>
+                              {section.valueLabel}
+                            </Table.Th>
+                          </Table.Tr>
+                        </Table.Thead>
+                        <Table.Tbody>
+                          {entries.length ? (
+                            entries.map((entry) => (
+                              <LeaderboardRow
+                                key={`${section.key}-${entry.username}`}
+                                entry={entry}
+                                section={section}
+                              />
+                            ))
+                          ) : (
+                            <Table.Tr>
+                              <Table.Td colSpan={3}>
+                                <Text c="dimmed">{t('noParticipants')}</Text>
+                              </Table.Td>
+                            </Table.Tr>
+                          )}
+                        </Table.Tbody>
+                      </Table>
+                    </Paper>
+                  </motion.div>
+                )
+              })}
+            </SimpleGrid>
+          </motion.div>
         ) : null}
       </Stack>
     </Container>

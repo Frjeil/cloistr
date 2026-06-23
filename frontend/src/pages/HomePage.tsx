@@ -1,4 +1,4 @@
-import { Alert, Autocomplete, Button, Group, Modal, Paper, Text } from '@mantine/core'
+import { Alert, Autocomplete, Modal } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -8,6 +8,7 @@ import { formatApiError } from '../api/auth'
 import { endActiveCheckin, formatCheckinError, startCheckin } from '../api/checkins'
 import { isHttpError } from '../api/client'
 import { fetchSpaces } from '../api/spaces'
+import { ActiveCheckinCard } from '../components/checkin/ActiveCheckinCard'
 import { FilterModal } from '../components/filters/FilterModal'
 import { SpacesMap } from '../components/map/SpacesMap'
 import { useAuth } from '../context/AuthContext'
@@ -95,7 +96,13 @@ export default function HomePage() {
   const startMutation = useMutation({
     mutationFn: startCheckin,
     onSuccess: async () => {
-      notifications.show({ color: 'green', message: t('startSuccess'), autoClose: 4000 })
+      notifications.show({
+        color: 'green',
+        title: `🎯 ${t('startSuccess')}`,
+        message: t('startSuccessSub') ?? '',
+        autoClose: 4000,
+        withBorder: true,
+      })
       await syncSessionState()
     },
     onError: (error: unknown) => {
@@ -159,41 +166,17 @@ export default function HomePage() {
     <div
       style={{
         position: 'relative',
-        height: 'calc(100vh - 60px)',
+        height: 'calc(100dvh - 60px)',
         display: 'flex',
         flexDirection: 'column',
       }}
     >
       {activeCheckin ? (
-        <Paper
-          withBorder
-          p="md"
-          radius="md"
-          shadow="md"
-          style={{ position: 'absolute', bottom: 16, left: 16, zIndex: 3000, maxWidth: 360 }}
-        >
-          <Group gap="sm" wrap="nowrap">
-            <div>
-              <Text size="sm" fw={600} truncate maw={180}>
-                {activeCheckin.spaceName || t('unknownSpace')}
-              </Text>
-              {activeCheckin.usesPower && (
-                <Text size="xs" c="dimmed">
-                  {t('checkinUsesPower')}
-                </Text>
-              )}
-            </div>
-            <Button
-              size="compact-sm"
-              color="red"
-              variant="light"
-              onClick={() => void endMutation.mutateAsync(activeCheckin.id)}
-              loading={endMutation.isPending}
-            >
-              {t('endCheckin')}
-            </Button>
-          </Group>
-        </Paper>
+        <ActiveCheckinCard
+          activeCheckin={activeCheckin}
+          onEnd={handleEndCheckin}
+          isPending={endMutation.isPending}
+        />
       ) : null}
 
       <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
