@@ -1,3 +1,18 @@
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Secrets and keys
+*.pem
+*.key
+*.cert
+id_rsa
+id_rsa.pub
+*credentials*
+*.cred
+secrets/
+
 # Logs
 logs
 *.log
@@ -37,10 +52,16 @@ backend/.coverage
 *.sw?
 .agents
 .impeccable
-.agent-ready/
 .opencode/
-PRODUCT.md
-DESIGN.md
 openspec/
-agent-ready-report.json
-scripts/agent-readiness-audit/
+AGENTS.md
+.github/CODEOWNERS
+.agent-ready/
+.agent-ready/badge.svg
+.agent-ready/agent-ready-report.html
+AGENTS.md
+DESIGN.md
+PRODUCT.md
+
+# Agent worktrees
+*.worktrees/
